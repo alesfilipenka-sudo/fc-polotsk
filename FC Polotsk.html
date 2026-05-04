@@ -1,0 +1,1062 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ФК Полоцк — Новая эра</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/framer-motion@11.11.17/dist/framer-motion.js"></script>
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.js"></script>
+<style>
+  :root {
+    --polotsk-blue: #003399;
+    --polotsk-blue-deep: #001f5c;
+    --polotsk-blue-mid: #1a4dbf;
+    --polotsk-blue-light: #4d7cd9;
+    --polotsk-accent: #6ea8ff;
+    --polotsk-ink: #0a0e1a;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #fff;
+    color: var(--polotsk-ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  .font-display { font-family: 'Bebas Neue', 'Inter', sans-serif; letter-spacing: 0.01em; }
+  .grain {
+    background-image:
+      radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+      radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 3px 3px, 7px 7px;
+    background-position: 0 0, 1px 1px;
+  }
+  .stadium-bg {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 100%, rgba(110,168,255,0.25) 0%, transparent 60%),
+      linear-gradient(180deg, #001233 0%, #002b80 50%, #003399 100%);
+  }
+  /* Wave motif from emblem */
+  .wave-divider {
+    height: 32px;
+    background-repeat: repeat-x;
+    background-size: 120px 32px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 32' preserveAspectRatio='none'><path d='M0 16 Q15 4 30 16 T60 16 T90 16 T120 16' stroke='%23003399' stroke-width='3' fill='none' stroke-linecap='round'/></svg>");
+  }
+  .wave-divider-light {
+    height: 32px;
+    background-repeat: repeat-x;
+    background-size: 120px 32px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 32' preserveAspectRatio='none'><path d='M0 16 Q15 4 30 16 T60 16 T90 16 T120 16' stroke='rgba(255,255,255,0.35)' stroke-width='3' fill='none' stroke-linecap='round'/></svg>");
+  }
+  .ticker { animation: ticker 40s linear infinite; }
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .player-card { transition: all 350ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .player-card:hover { transform: translateY(-6px); }
+  .player-card:hover .player-img { transform: scale(1.04); }
+  .player-img { transition: transform 500ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .news-card { transition: all 350ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .news-card:hover { transform: translateY(-4px); }
+  .news-card:hover .news-img { transform: scale(1.05); }
+  .news-img { transition: transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+  ::selection { background: var(--polotsk-blue); color: white; }
+  /* Placeholder generators */
+  .ph-jersey {
+    background:
+      radial-gradient(circle at 50% 30%, rgba(255,255,255,0.15) 0%, transparent 40%),
+      linear-gradient(135deg, #003399 0%, #001f5c 100%);
+  }
+  .ph-news-1 { background: linear-gradient(135deg, #003399 0%, #4d7cd9 100%); }
+  .ph-news-2 { background: linear-gradient(135deg, #001f5c 0%, #003399 100%); }
+  .ph-news-3 { background: linear-gradient(135deg, #4d7cd9 0%, #6ea8ff 100%); }
+  .ph-news-4 { background: linear-gradient(135deg, #001233 0%, #002b80 100%); }
+  .ph-news-5 { background: linear-gradient(135deg, #6ea8ff 0%, #003399 100%); }
+  .ph-news-6 { background: linear-gradient(135deg, #002b80 0%, #4d7cd9 100%); }
+
+  .underline-grow { position: relative; }
+  .underline-grow::after {
+    content: ''; position: absolute; left: 0; bottom: -4px; height: 2px; width: 0;
+    background: currentColor; transition: width 300ms ease;
+  }
+  .underline-grow:hover::after, .underline-grow.active::after { width: 100%; }
+  .clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Wave SVG inline icon for branding details */
+  .brand-waves {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 40'><path d='M0 14 Q25 2 50 14 T100 14 T150 14 T200 14' stroke='currentColor' stroke-width='4' fill='none' stroke-linecap='round'/><path d='M0 30 Q25 18 50 30 T100 30 T150 30 T200 30' stroke='currentColor' stroke-width='4' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo } = React;
+const M = window.Motion || window.framerMotion;
+
+// ----- Lucide icon helper (uses lucide UMD raw icon nodes) -----
+const Icon = ({ name, size = 20, className = '', strokeWidth = 2 }) => {
+  const lucide = window.lucide;
+  if (!lucide || !lucide.icons) return <span className={className} style={{ width: size, height: size, display: 'inline-block' }} />;
+  const nodes = lucide.icons[name];
+  if (!nodes) return <span className={className} style={{ width: size, height: size, display: 'inline-block' }} />;
+  const children = Array.isArray(nodes) && Array.isArray(nodes[2]) ? nodes[2] : [];
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {children.map(([tag, attrs], i) => React.createElement(tag, { key: `${tag}-${i}`, ...attrs }))}
+    </svg>
+  );
+};
+
+// Brand-specific icons not in lucide
+const VKIcon = ({ size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12.85 16.6c-5.03 0-7.9-3.45-8.02-9.18h2.52c.08 4.21 1.94 6 3.41 6.36V7.42h2.37v3.63c1.45-.16 2.97-1.81 3.49-3.63h2.37a6.94 6.94 0 0 1-3.2 4.55c1.46.61 2.93 2.05 3.49 4.63h-2.6c-.43-1.6-1.82-2.84-3.55-3.04v3.04h-.28z"/>
+  </svg>
+);
+
+const fadeUp = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.2, 0.8, 0.2, 1] } } };
+const stagger = { visible: { transition: { staggerChildren: 0.07 } } };
+
+// ------------------------ DATA ------------------------
+const NAV = [
+  { id: 'matches', label: 'Матчи' },
+  { id: 'team', label: 'Команда' },
+  { id: 'news', label: 'Новости' },
+  { id: 'social', label: 'Соцсети' },
+  { id: 'results', label: 'Результаты' },
+];
+
+const NEXT_MATCH = {
+  home: { name: 'ФК Полоцк', short: 'ПОЛ' },
+  away: { name: 'Динамо-Брест', short: 'БРЕ' },
+  date: (() => { const d = new Date(); d.setDate(d.getDate() + 6); d.setHours(19, 0, 0, 0); return d; })(),
+  stadium: 'Стадион "Спартак"',
+  competition: 'Высшая лига · Тур 9',
+};
+
+const RECENT = [
+  { date: '20.04', comp: 'Высшая лига', home: 'ФК Полоцк', away: 'Витебск', hs: 2, as: 1, result: 'W' },
+  { date: '13.04', comp: 'Кубок РБ', home: 'Слуцк', away: 'ФК Полоцк', hs: 0, as: 3, result: 'W' },
+  { date: '06.04', comp: 'Высшая лига', home: 'ФК Полоцк', away: 'Минск', hs: 1, as: 1, result: 'D' },
+  { date: '30.03', comp: 'Высшая лига', home: 'Шахтёр', away: 'ФК Полоцк', hs: 2, as: 0, result: 'L' },
+  { date: '23.03', comp: 'Высшая лига', home: 'ФК Полоцк', away: 'Гомель', hs: 4, as: 2, result: 'W' },
+];
+
+const NEWS = [
+  { id: 'n1', tag: 'Трансфер', title: 'Артём Ковалёв подписал контракт до 2028 года', excerpt: 'Полузащитник продлил соглашение с клубом и стал ключевой фигурой обновлённого состава.', date: '28 апреля', img: 'ph-news-1' },
+  { id: 'n2', tag: 'Матч', title: 'Полоцк обыграл Витебск со счётом 2:1 на домашней арене', excerpt: 'Дубль Соколова и героическая игра вратаря принесли важные три очка.', date: '21 апреля', img: 'ph-news-2' },
+  { id: 'n3', tag: 'Клуб', title: 'Открыт новый тренировочный комплекс на берегу Двины', excerpt: 'Современная база с двумя полями, медицинским центром и академией для молодёжи.', date: '18 апреля', img: 'ph-news-3' },
+  { id: 'n4', tag: 'Интервью', title: 'Главный тренер о философии новой эры клуба', excerpt: 'Прессинг, скорость и работа с местными воспитанниками — три кита нашей игры.', date: '15 апреля', img: 'ph-news-4' },
+  { id: 'n5', tag: 'Болельщикам', title: 'Старт продаж абонементов на сезон 2026', excerpt: 'Три тарифа, удобная рассрочка и эксклюзивный мерч в подарок при покупке до 15 мая.', date: '12 апреля', img: 'ph-news-5' },
+  { id: 'n6', tag: 'Академия', title: 'U-17 вышла в финал юношеского кубка страны', excerpt: 'Воспитанники клуба продолжают доминировать в своей возрастной категории.', date: '08 апреля', img: 'ph-news-6' },
+];
+
+const SQUAD = [
+  { num: 1, name: 'Дмитрий Соколов', pos: 'GK', age: 28, country: 'BY' },
+  { num: 12, name: 'Никита Захаров', pos: 'GK', age: 22, country: 'BY' },
+  { num: 2, name: 'Артём Романов', pos: 'DF', age: 27, country: 'BY' },
+  { num: 4, name: 'Максим Левченко', pos: 'DF', age: 30, country: 'BY' },
+  { num: 5, name: 'Илья Петров', pos: 'DF', age: 24, country: 'BY' },
+  { num: 15, name: 'Лука Йованович', pos: 'DF', age: 26, country: 'RS' },
+  { num: 6, name: 'Артём Ковалёв', pos: 'MF', age: 25, country: 'BY' },
+  { num: 8, name: 'Павел Жуков', pos: 'MF', age: 23, country: 'BY' },
+  { num: 10, name: 'Глеб Морозов', pos: 'MF', age: 29, country: 'BY' },
+  { num: 14, name: 'Самир Хаджич', pos: 'MF', age: 27, country: 'BA' },
+  { num: 9, name: 'Виктор Соколов', pos: 'FW', age: 26, country: 'BY' },
+  { num: 11, name: 'Денис Орлов', pos: 'FW', age: 21, country: 'BY' },
+  { num: 17, name: 'Даниэль Силва', pos: 'FW', age: 24, country: 'BR' },
+];
+
+const POS_FILTERS = [
+  { id: 'ALL', label: 'Все' },
+  { id: 'GK', label: 'Вратари' },
+  { id: 'DF', label: 'Защитники' },
+  { id: 'MF', label: 'Полузащитники' },
+  { id: 'FW', label: 'Нападающие' },
+];
+const POS_LABEL = { GK: 'Вратарь', DF: 'Защитник', MF: 'Полузащитник', FW: 'Нападающий' };
+
+const STANDINGS_PREVIEW = [
+  { pos: 1, team: 'БАТЭ', mp: 8, pts: 19 },
+  { pos: 2, team: 'Динамо-Минск', mp: 8, pts: 17 },
+  { pos: 3, team: 'Шахтёр', mp: 8, pts: 16 },
+  { pos: 4, team: 'ФК Полоцк', mp: 8, pts: 14, highlight: true },
+  { pos: 5, team: 'Динамо-Брест', mp: 8, pts: 12 },
+  { pos: 6, team: 'Гомель', mp: 8, pts: 11 },
+];
+
+const SOCIALS = [
+  { id: 'instagram', label: 'Instagram', handle: '@fcpolotsk', followers: '24.6K', url: '#', accent: 'from-pink-500 via-fuchsia-500 to-orange-400' },
+  { id: 'telegram', label: 'Telegram', handle: '@fcpolotsk_official', followers: '12.3K', url: '#', accent: 'from-sky-400 to-blue-500' },
+  { id: 'vk', label: 'ВКонтакте', handle: 'fcpolotsk', followers: '38.1K', url: '#', accent: 'from-blue-500 to-indigo-700' },
+];
+
+const IG_POSTS = [
+  { id: 'p1', tag: 'ph-news-1', likes: '2.4K', comments: 87, caption: 'Победа над Витебском 2:1 🚢⚓️ #ФКПолоцк' },
+  { id: 'p2', tag: 'ph-news-3', likes: '1.8K', comments: 54, caption: 'Тренировка на новой базе 💪' },
+  { id: 'p3', tag: 'ph-news-5', likes: '3.1K', comments: 142, caption: 'Абонементы 2026 — старт продаж!' },
+  { id: 'p4', tag: 'ph-news-2', likes: '4.5K', comments: 203, caption: 'Соколов снова забивает 🔥' },
+];
+
+const TG_POSTS = [
+  { id: 't1', time: '2 ч назад', text: '⚽ Состав на матч с Динамо-Брест объявлен. Капитан — Морозов.', views: '8.2K' },
+  { id: 't2', time: '7 ч назад', text: '📸 Закулисье открытой тренировки. Эксклюзивные фото в галерее канала.', views: '6.4K' },
+  { id: 't3', time: 'вчера', text: '🎟 Осталось менее 500 билетов на домашний матч. Успейте!', views: '14.1K' },
+];
+
+const VK_POSTS = [
+  { id: 'v1', time: '3 ч назад', text: 'Команда отправилась на выездной сбор. Подробный фотоотчёт уже в альбоме клуба.', likes: 412, reposts: 38 },
+  { id: 'v2', time: 'вчера', text: 'Опрос: кого выберете лучшим игроком апреля? Голосование в закрепе.', likes: 1207, reposts: 64 },
+];
+
+// ------------------------ COMPONENTS ------------------------
+
+// Real emblem rendered from PNG asset (faithful to source)
+function Logo({ size = 40 }) {
+  return (
+    <img src="assets/logo.png" alt="ФК Полоцк" width={size} height={size * 1.2}
+      style={{ width: size, height: size * 1.2, objectFit: 'contain', display: 'block' }} draggable="false"/>
+  );
+}
+// White-stencil version for dark backgrounds — uses CSS mask of the same image
+function LogoLight({ size = 40, opacity = 1 }) {
+  return (
+    <span aria-label="ФК Полоцк" role="img" style={{
+      display: 'inline-block', width: size, height: size * 1.2, opacity,
+      backgroundColor: 'white',
+      WebkitMaskImage: 'url(assets/logo.png)', maskImage: 'url(assets/logo.png)',
+      WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
+      WebkitMaskSize: 'contain', maskSize: 'contain',
+      WebkitMaskPosition: 'center', maskPosition: 'center',
+    }}/>
+  );
+}
+
+function Header({ activeSection }) {
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  return (
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm' : 'bg-transparent'}`}>
+      <div className="max-w-7xl mx-auto px-5 md:px-8 h-16 md:h-20 flex items-center justify-between gap-4">
+        <a href="#top" className="flex items-center gap-3 min-w-0">
+          {scrolled ? <Logo size={scrolled ? 30 : 36} color="#003399"/> : <LogoLight size={36}/>}
+          <div className="hidden sm:block leading-tight min-w-0">
+            <div className={`font-display text-lg md:text-xl tracking-wider truncate ${scrolled ? 'text-[#003399]' : 'text-white'}`}>ФК ПОЛОЦК</div>
+            <div className={`text-[10px] uppercase tracking-[0.2em] ${scrolled ? 'text-slate-500' : 'text-white/70'}`}>EST. 2019</div>
+          </div>
+        </a>
+
+        <nav className="hidden lg:flex items-center gap-7">
+          {NAV.map(n => (
+            <a key={n.id} href={`#${n.id}`}
+              className={`underline-grow text-sm font-medium tracking-wide uppercase transition-colors ${activeSection === n.id ? 'active' : ''} ${scrolled ? 'text-slate-700 hover:text-[#003399]' : 'text-white/90 hover:text-white'}`}>
+              {n.label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="hidden md:flex items-center gap-1">
+            {SOCIALS.map(s => {
+              const icon = s.id === 'instagram' ? <Icon name="Instagram" size={16}/> :
+                s.id === 'telegram' ? <Icon name="Send" size={16}/> :
+                <VKIcon size={16}/>;
+              return (
+                <a key={s.id} href={s.url} aria-label={s.label}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${scrolled ? 'text-slate-600 hover:text-[#003399] hover:bg-slate-100' : 'text-white/80 hover:text-white hover:bg-white/10'}`}>
+                  {icon}
+                </a>
+              );
+            })}
+          </div>
+          <button className="lg:hidden p-2" onClick={() => setMobileOpen(v => !v)}>
+            <Icon name={mobileOpen ? 'X' : 'Menu'} size={24} className={scrolled ? 'text-[#003399]' : 'text-white'} />
+          </button>
+        </div>
+      </div>
+
+      {mobileOpen && (
+        <div className="lg:hidden bg-white border-t border-slate-200">
+          <div className="px-5 py-4 flex flex-col gap-1">
+            {NAV.map(n => (
+              <a key={n.id} href={`#${n.id}`} onClick={() => setMobileOpen(false)}
+                className="px-3 py-3 rounded-lg text-sm font-semibold uppercase tracking-wider text-slate-700 hover:bg-slate-50">
+                {n.label}
+              </a>
+            ))}
+            <div className="mt-2 pt-3 border-t border-slate-200 flex items-center gap-2">
+              {SOCIALS.map(s => {
+                const icon = s.id === 'instagram' ? <Icon name="Instagram" size={16}/> :
+                  s.id === 'telegram' ? <Icon name="Send" size={16}/> :
+                  <VKIcon size={16}/>;
+                return (
+                  <a key={s.id} href={s.url} aria-label={s.label}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg bg-slate-50 text-slate-700 hover:bg-[#003399] hover:text-white text-xs font-bold uppercase tracking-wider transition-colors">
+                    {icon}<span>{s.label}</span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
+
+function Countdown({ target }) {
+  const [t, setT] = useState({ d: 0, h: 0, m: 0, s: 0 });
+  useEffect(() => {
+    const tick = () => {
+      const diff = Math.max(0, target.getTime() - Date.now());
+      setT({
+        d: Math.floor(diff / 86400000),
+        h: Math.floor((diff % 86400000) / 3600000),
+        m: Math.floor((diff % 3600000) / 60000),
+        s: Math.floor((diff % 60000) / 1000),
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [target]);
+
+  const cells = [
+    { v: t.d, l: 'Дней' },
+    { v: t.h, l: 'Часов' },
+    { v: t.m, l: 'Минут' },
+    { v: t.s, l: 'Секунд' },
+  ];
+  return (
+    <div className="flex items-center justify-between gap-2 sm:gap-4">
+      {cells.map((c, i) => (
+        <React.Fragment key={c.l}>
+          <div className="flex flex-col items-center min-w-0">
+            <div className="font-display text-3xl sm:text-4xl md:text-5xl tabular-nums leading-none text-white">{String(c.v).padStart(2, '0')}</div>
+            <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-white/60 mt-2">{c.l}</div>
+          </div>
+          {i < cells.length - 1 && <div className="text-white/30 text-2xl sm:text-3xl font-display">:</div>}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+function Hero() {
+  return (
+    <section id="top" className="relative stadium-bg overflow-hidden">
+      <div className="absolute inset-0 grain opacity-40 mix-blend-overlay pointer-events-none"></div>
+
+      <div className="absolute right-[-60px] top-[8%] opacity-[0.05] pointer-events-none hidden md:block">
+        <LogoLight size={420} />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-5 md:px-8 pt-24 md:pt-28 pb-14 md:pb-16 flex flex-col">
+        <div className="flex flex-wrap items-center gap-3 mb-6 md:mb-10">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-[#6ea8ff] opacity-75 animate-ping"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#6ea8ff]"></span>
+            </span>
+            <span className="text-[11px] uppercase tracking-[0.18em] text-white/90 font-medium">Сезон 2025/26 · Высшая лига</span>
+          </div>
+          <div className="hidden md:flex items-center gap-2 text-white/50 text-xs uppercase tracking-wider">
+            <Icon name="MapPin" size={12} /><span>Полоцк, Беларусь</span>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-12 gap-6 md:gap-10 items-center flex-1">
+          <div className="md:col-span-7 min-w-0">
+            <div className="text-white/60 text-xs md:text-sm font-medium uppercase tracking-[0.3em] mb-4">ФК Полоцк // 2026</div>
+            <h1 className="font-display text-white text-[16vw] md:text-[8.5rem] leading-[0.85] tracking-tight">
+              НОВАЯ
+              <br />
+              <span className="text-[#6ea8ff]">ЭРА</span>
+            </h1>
+            <p className="text-white/70 text-sm md:text-base max-w-xl mt-5 md:mt-6 leading-relaxed">
+              Новый состав. Новый вектор. Полоцкая ладья снова в гонке за титул. Будущее белорусского футбола создаётся здесь — на берегу Двины.
+            </p>
+            <div className="flex flex-wrap gap-3 mt-6 md:mt-8">
+              <a href="#matches" className="group inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white text-[#003399] text-sm font-bold uppercase tracking-wider hover:bg-[#6ea8ff] hover:text-white transition-colors">
+                Ближайший матч
+                <Icon name="ArrowRight" size={16} className="group-hover:translate-x-1 transition-transform" />
+              </a>
+              <a href="#team" className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full border border-white/30 text-white text-sm font-bold uppercase tracking-wider hover:bg-white/10 transition-colors">
+                Состав
+              </a>
+            </div>
+          </div>
+
+          <div className="md:col-span-5 min-w-0">
+            <div className="rounded-2xl bg-white/[0.07] backdrop-blur-md border border-white/15 p-5 md:p-6">
+              <div className="flex items-center justify-between mb-5 gap-2">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-white/50 font-medium truncate">Следующий матч</div>
+                <div className="text-[10px] uppercase tracking-wider text-[#6ea8ff] font-bold shrink-0">Тур 9</div>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 mb-6">
+                <div className="text-center flex-1 min-w-0">
+                  <div className="w-14 h-14 mx-auto rounded-full bg-white/10 flex items-center justify-center mb-2 overflow-hidden">
+                    <LogoLight size={32} />
+                  </div>
+                  <div className="font-display text-lg text-white truncate">ПОЛ</div>
+                </div>
+                <div className="font-display text-2xl text-white/40 shrink-0">VS</div>
+                <div className="text-center flex-1 min-w-0">
+                  <div className="w-14 h-14 mx-auto rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-2 font-display text-white">БРЕ</div>
+                  <div className="font-display text-lg text-white truncate">БРЕ</div>
+                </div>
+              </div>
+
+              <div className="border-t border-white/10 pt-5">
+                <Countdown target={NEXT_MATCH.date} />
+              </div>
+
+              <div className="mt-5 pt-5 border-t border-white/10 flex items-center justify-between gap-2 text-xs text-white/60">
+                <div className="flex items-center gap-1.5 min-w-0"><Icon name="Calendar" size={12} /><span className="truncate">{NEXT_MATCH.date.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' })}</span></div>
+                <div className="flex items-center gap-1.5 shrink-0"><Icon name="Clock" size={12} />19:00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  );
+}
+
+// Section header — simplified, no framer-motion stagger to avoid key issues
+function SectionHeader({ eyebrow, title, action, dark = false }) {
+  const accentColor = dark ? 'bg-[#6ea8ff]' : 'bg-[#003399]';
+  const eyebrowColor = dark ? 'text-[#6ea8ff]' : 'text-[#003399]';
+  const titleColor = dark ? 'text-white' : 'text-[#0a0e1a]';
+  return (
+    <div className="flex items-end justify-between mb-8 md:mb-10 gap-6 flex-wrap">
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`h-px w-10 ${accentColor}`}></div>
+          <div className={`${eyebrowColor} text-xs uppercase tracking-[0.25em] font-semibold`}>{eyebrow}</div>
+        </div>
+        <h2 className={`font-display text-4xl md:text-6xl ${titleColor} leading-[0.9] tracking-tight text-balance`}>{title}</h2>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+function MatchCenter() {
+  return (
+    <section id="matches" className="relative py-14 md:py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <SectionHeader eyebrow="Матч-центр" title={<>Игры<br/><span className="text-[#003399]">сезона</span></>} />
+
+        <div className="grid lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-7 min-w-0">
+            <div className="relative rounded-3xl bg-[#003399] text-white p-7 md:p-10 overflow-hidden h-full">
+              <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
+                <LogoLight size={300} />
+              </div>
+              {/* wave motif from emblem */}
+              <div className="absolute bottom-0 left-0 right-0 wave-divider-light opacity-30 pointer-events-none"></div>
+
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-8 flex-wrap">
+                  <div className="px-3 py-1 rounded-full bg-white/15 text-[10px] uppercase tracking-[0.2em] font-bold">Следующий матч</div>
+                  <div className="text-[10px] uppercase tracking-wider text-white/60 truncate">{NEXT_MATCH.competition}</div>
+                </div>
+
+                <div className="grid grid-cols-3 items-start gap-3 md:gap-4 mb-10">
+                  <div className="text-center min-w-0">
+                    <div className="w-20 h-20 md:w-24 md:h-24 mx-auto rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center mb-4 border border-white/20 overflow-hidden">
+                      <LogoLight size={56} />
+                    </div>
+                    <div className="font-display text-xl md:text-3xl break-words">{NEXT_MATCH.home.name}</div>
+                    <div className="text-xs text-white/50 uppercase tracking-wider mt-1">Дома</div>
+                  </div>
+
+                  <div className="text-center pt-6 md:pt-8">
+                    <div className="font-display text-4xl md:text-7xl text-white/30 tabular-nums">VS</div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-[#6ea8ff] font-bold mt-2 break-words">
+                      {NEXT_MATCH.date.toLocaleDateString('ru-RU', { day: '2-digit', month: 'long' })}
+                    </div>
+                  </div>
+
+                  <div className="text-center min-w-0">
+                    <div className="w-20 h-20 md:w-24 md:h-24 mx-auto rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center mb-4 font-display text-2xl md:text-3xl">
+                      {NEXT_MATCH.away.short}
+                    </div>
+                    <div className="font-display text-xl md:text-3xl break-words">{NEXT_MATCH.away.name}</div>
+                    <div className="text-xs text-white/50 uppercase tracking-wider mt-1">В гостях</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 pt-6 border-t border-white/10">
+                  <div className="min-w-0">
+                    <div className="text-[10px] uppercase tracking-wider text-white/50 mb-1">Дата</div>
+                    <div className="text-sm font-semibold flex items-center gap-1.5 truncate"><Icon name="Calendar" size={14} className="shrink-0"/>{NEXT_MATCH.date.toLocaleDateString('ru-RU')}</div>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[10px] uppercase tracking-wider text-white/50 mb-1">Начало</div>
+                    <div className="text-sm font-semibold flex items-center gap-1.5"><Icon name="Clock" size={14} className="shrink-0"/>19:00</div>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[10px] uppercase tracking-wider text-white/50 mb-1">Стадион</div>
+                    <div className="text-sm font-semibold flex items-center gap-1.5 truncate"><Icon name="MapPin" size={14} className="shrink-0"/>Спартак</div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3 mt-8">
+                  <a href="#results" className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white text-[#003399] text-xs font-bold uppercase tracking-wider hover:bg-[#6ea8ff] hover:text-white transition-colors">
+                    <Icon name="BarChart3" size={14} />Статистика сезона
+                  </a>
+                  <button className="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-white/30 text-white text-xs font-bold uppercase tracking-wider hover:bg-white/10">
+                    <Icon name="CalendarPlus" size={14} />В календарь
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 flex flex-col gap-6 min-w-0">
+            <div className="rounded-3xl bg-white border border-slate-200 p-6 md:p-7">
+              <div className="flex items-center justify-between mb-5 gap-3">
+                <h3 className="font-display text-2xl tracking-wide truncate">Последние матчи</h3>
+                <a href="#results" className="text-xs uppercase tracking-wider text-[#003399] font-bold hover:underline shrink-0">Все →</a>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {RECENT.slice(0, 4).map((r, i) => {
+                  const polotskHome = r.home === 'ФК Полоцк';
+                  const polotskScore = polotskHome ? r.hs : r.as;
+                  const oppScore = polotskHome ? r.as : r.hs;
+                  const opp = polotskHome ? r.away : r.home;
+                  return (
+                    <div key={`rec-${i}`} className="py-3.5 flex items-center gap-3 md:gap-4">
+                      <div className={`w-1 h-10 rounded-full shrink-0 ${r.result === 'W' ? 'bg-[#003399]' : r.result === 'L' ? 'bg-red-400' : 'bg-slate-300'}`}></div>
+                      <div className="text-[11px] text-slate-400 uppercase tracking-wider w-12 tabular-nums shrink-0">{r.date}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold truncate">{polotskHome ? 'vs' : '@'} {opp}</div>
+                        <div className="text-[10px] uppercase tracking-wider text-slate-400 truncate">{r.comp}</div>
+                      </div>
+                      <div className="font-display text-2xl tabular-nums tracking-wider shrink-0">
+                        <span className={polotskScore > oppScore ? 'text-[#003399]' : 'text-slate-400'}>{polotskScore}</span>
+                        <span className="text-slate-300 mx-1">·</span>
+                        <span className={polotskScore < oppScore ? 'text-red-500' : 'text-slate-400'}>{oppScore}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="rounded-3xl bg-[#0a0e1a] text-white p-6 md:p-7 relative overflow-hidden">
+              <div className="absolute top-0 right-0 opacity-5"><LogoLight size={180}/></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-5 gap-3">
+                  <h3 className="font-display text-2xl tracking-wide truncate">Турнирная таблица</h3>
+                  <div className="text-[10px] uppercase tracking-wider text-white/40 shrink-0">Тур 8</div>
+                </div>
+                <div className="space-y-1.5">
+                  {STANDINGS_PREVIEW.map((s) => (
+                    <div key={`st-${s.pos}`} className={`flex items-center gap-3 px-3 py-2 rounded-lg ${s.highlight ? 'bg-[#003399]' : 'hover:bg-white/5'}`}>
+                      <div className={`text-sm font-display w-6 shrink-0 ${s.highlight ? 'text-[#6ea8ff]' : 'text-white/40'}`}>{s.pos}</div>
+                      <div className="flex-1 text-sm font-medium truncate">{s.team}</div>
+                      <div className="text-xs text-white/50 tabular-nums shrink-0">{s.mp}</div>
+                      <div className="font-display text-lg tabular-nums w-8 text-right shrink-0">{s.pts}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function NewsCard({ item, idx }) {
+  return (
+    <article className="news-card group cursor-pointer min-w-0" style={{ animationDelay: `${idx * 60}ms` }}>
+      <div className={`relative aspect-[4/3] rounded-2xl overflow-hidden ${item.img}`}>
+        <div className="absolute inset-0 news-img grain mix-blend-overlay opacity-50"></div>
+        <div className="absolute inset-0 flex items-center justify-center opacity-30 news-img">
+          <LogoLight size={120} />
+        </div>
+        <div className="absolute top-4 left-4">
+          <span className="px-2.5 py-1 rounded-full bg-white/95 text-[#003399] text-[10px] font-bold uppercase tracking-wider">{item.tag}</span>
+        </div>
+        <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+            <Icon name="ArrowUpRight" size={18} className="text-[#003399]" />
+          </div>
+        </div>
+      </div>
+      <div className="pt-5">
+        <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">{item.date}</div>
+        <h3 className="font-display text-xl md:text-2xl tracking-wide text-[#0a0e1a] leading-tight mb-2 group-hover:text-[#003399] transition-colors text-balance clamp-2">
+          {item.title}
+        </h3>
+        <p className="text-sm text-slate-500 leading-relaxed clamp-2">{item.excerpt}</p>
+      </div>
+    </article>
+  );
+}
+
+function News() {
+  return (
+    <section id="news" className="py-14 md:py-20 bg-slate-50/60">
+      <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <SectionHeader
+          eyebrow="Новости клуба"
+          title={<>Последние<br/>события</>}
+          action={<a href="#" className="hidden md:inline-flex items-center gap-2 text-sm font-semibold text-[#003399] uppercase tracking-wider hover:gap-3 transition-all shrink-0">Все новости <Icon name="ArrowRight" size={16}/></a>}
+        />
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {NEWS.map((n, i) => <NewsCard key={n.id} item={n} idx={i} />)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PlayerCard({ p, idx }) {
+  return (
+    <div className="player-card group relative min-w-0" style={{ animationDelay: `${idx * 40}ms` }}>
+      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden ph-jersey">
+        <div className="absolute inset-0 player-img grain mix-blend-overlay opacity-40"></div>
+        {/* Jersey silhouette fallback — shown when no player photo available */}
+        <svg viewBox="0 0 200 280" className="absolute inset-0 w-full h-full player-img" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id={`jg-${idx}`} x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#4d7cd9" stopOpacity="0.4"/>
+              <stop offset="100%" stopColor="#001f5c" stopOpacity="0"/>
+            </linearGradient>
+          </defs>
+          <circle cx="100" cy="80" r="32" fill="rgba(255,255,255,0.06)" />
+          <path d="M 50 130 Q 60 115 80 110 L 100 120 L 120 110 Q 140 115 150 130 L 160 200 L 155 280 L 45 280 L 40 200 Z" fill="rgba(255,255,255,0.08)"/>
+          <path d="M 50 130 Q 60 115 80 110 L 100 120 L 120 110 Q 140 115 150 130 L 160 200 L 155 280 L 45 280 L 40 200 Z" fill={`url(#jg-${idx})`}/>
+          <path d="M 88 120 L 100 138 L 112 120" stroke="rgba(255,255,255,0.15)" strokeWidth="2" fill="none"/>
+        </svg>
+
+        <div className="absolute bottom-2 right-3 font-display text-white/15 text-[8rem] leading-none select-none pointer-events-none">{p.num}</div>
+
+        <div className="absolute top-3 left-3 px-2 py-1 rounded-md bg-black/30 backdrop-blur-sm text-[10px] uppercase tracking-wider text-white font-bold">{p.country}</div>
+        <div className="absolute top-3 right-3 px-2 py-1 rounded-md bg-white/95 text-[#003399] text-[10px] font-bold uppercase tracking-wider">{p.pos}</div>
+
+        <div className="absolute inset-0 bg-gradient-to-t from-[#003399] via-[#003399]/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+          <div className="text-white">
+            <div className="text-[10px] uppercase tracking-wider text-white/70">Возраст</div>
+            <div className="font-display text-3xl">{p.age}</div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="text-xs text-slate-400 uppercase tracking-wider">{POS_LABEL[p.pos]}</div>
+          <div className="font-display text-lg tracking-wide truncate">{p.name}</div>
+        </div>
+        <div className="font-display text-3xl text-[#003399] tabular-nums shrink-0">{String(p.num).padStart(2, '0')}</div>
+      </div>
+    </div>
+  );
+}
+
+function Team() {
+  const [filter, setFilter] = useState('ALL');
+  const filtered = useMemo(() => filter === 'ALL' ? SQUAD : SQUAD.filter(p => p.pos === filter), [filter]);
+  return (
+    <section id="team" className="py-14 md:py-20 bg-white relative">
+      <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <SectionHeader eyebrow="Состав 2025/26" title={<>Наша<br/><span className="text-[#003399]">команда</span></>} />
+
+        <div className="flex flex-wrap gap-2 mb-10">
+          {POS_FILTERS.map(f => {
+            const active = filter === f.id;
+            const count = f.id === 'ALL' ? SQUAD.length : SQUAD.filter(p => p.pos === f.id).length;
+            return (
+              <button key={f.id} onClick={() => setFilter(f.id)}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${active ? 'bg-[#003399] text-white shadow-lg shadow-[#003399]/20' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                <span className="truncate max-w-[160px]">{f.label}</span>
+                <span className={`text-[10px] tabular-nums ${active ? 'text-white/60' : 'text-slate-400'}`}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
+          {filtered.map((p, i) => <PlayerCard key={p.num} p={p} idx={i} />)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ===== SOCIAL FEEDS =====
+function SocialBrandCard({ s }) {
+  const Brand = s.id === 'instagram' ? <Icon name="Instagram" size={22}/> :
+    s.id === 'telegram' ? <Icon name="Send" size={22}/> :
+    <VKIcon size={22}/>;
+  return (
+    <a href={s.url} className="group relative rounded-2xl overflow-hidden p-6 bg-white border border-slate-200 hover:border-[#003399] hover:-translate-y-1 transition-all min-w-0 block">
+      <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${s.accent}`}></div>
+      <div className="flex items-start justify-between gap-3">
+        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${s.accent} text-white flex items-center justify-center shrink-0`}>
+          {Brand}
+        </div>
+        <Icon name="ArrowUpRight" size={18} className="text-slate-300 group-hover:text-[#003399] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0"/>
+      </div>
+      <div className="mt-5 min-w-0">
+        <div className="font-display text-2xl tracking-wide text-[#0a0e1a]">{s.label}</div>
+        <div className="text-xs text-slate-400 truncate mt-0.5">{s.handle}</div>
+      </div>
+      <div className="mt-5 pt-4 border-t border-slate-100 flex items-baseline justify-between gap-2">
+        <div>
+          <div className="font-display text-2xl text-[#003399] tabular-nums">{s.followers}</div>
+          <div className="text-[10px] uppercase tracking-wider text-slate-400">Подписчиков</div>
+        </div>
+        <div className="text-[10px] uppercase tracking-wider text-[#003399] font-bold">Подписаться</div>
+      </div>
+    </a>
+  );
+}
+
+function InstagramFrame() {
+  return (
+    <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden flex flex-col min-w-0">
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-500 to-orange-400 p-[2px] shrink-0">
+          <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+            <Logo size={20} color="#003399"/>
+          </div>
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-bold truncate">fcpolotsk</div>
+          <div className="text-[10px] text-slate-400 uppercase tracking-wider truncate">Instagram · Лента</div>
+        </div>
+        <Icon name="Instagram" size={18} className="text-slate-400 shrink-0"/>
+      </div>
+      <div className="grid grid-cols-2 gap-px bg-slate-100">
+        {IG_POSTS.map(p => (
+          <div key={p.id} className={`relative aspect-square ${p.tag} group cursor-pointer overflow-hidden`}>
+            <div className="absolute inset-0 grain mix-blend-overlay opacity-40"></div>
+            <div className="absolute inset-0 flex items-center justify-center opacity-25"><LogoLight size={80}/></div>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center gap-4 text-white opacity-0 group-hover:opacity-100">
+              <div className="flex items-center gap-1 text-sm font-semibold"><Icon name="Heart" size={14} strokeWidth={2.5}/>{p.likes}</div>
+              <div className="flex items-center gap-1 text-sm font-semibold"><Icon name="MessageCircle" size={14} strokeWidth={2.5}/>{p.comments}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between gap-3">
+        <div className="text-[11px] text-slate-500 truncate">{IG_POSTS[0].caption}</div>
+        <a href="#" className="text-[10px] uppercase tracking-wider font-bold text-[#003399] shrink-0">Открыть →</a>
+      </div>
+    </div>
+  );
+}
+
+function TelegramFrame() {
+  return (
+    <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden flex flex-col min-w-0">
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-sky-50 to-white">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center shrink-0">
+          <Icon name="Send" size={16} className="text-white"/>
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-bold truncate">ФК Полоцк | Official</div>
+          <div className="text-[10px] text-slate-400 uppercase tracking-wider truncate">Telegram · 12.3K подписчиков</div>
+        </div>
+        <button className="px-3 py-1 rounded-full bg-[#229ED9] text-white text-[10px] font-bold uppercase tracking-wider shrink-0">Открыть</button>
+      </div>
+      <div className="p-4 space-y-3 flex-1 bg-slate-50/40">
+        {TG_POSTS.map(p => (
+          <div key={p.id} className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
+            <div className="text-sm leading-relaxed text-slate-800 break-words">{p.text}</div>
+            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 gap-2">
+              <span className="truncate">{p.time}</span>
+              <span className="flex items-center gap-1 shrink-0"><Icon name="Eye" size={11}/>{p.views}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function VKFrame() {
+  return (
+    <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden flex flex-col min-w-0">
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center shrink-0">
+          <VKIcon size={18} className="text-white"/>
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-bold truncate">ФК Полоцк</div>
+          <div className="text-[10px] text-slate-400 uppercase tracking-wider truncate">ВКонтакте · Стена</div>
+        </div>
+        <button className="px-3 py-1 rounded-full bg-[#0077FF] text-white text-[10px] font-bold uppercase tracking-wider shrink-0">Подписаться</button>
+      </div>
+      {/* Pinned cover */}
+      <div className="relative aspect-[16/7] ph-news-2 overflow-hidden">
+        <div className="absolute inset-0 grain mix-blend-overlay opacity-40"></div>
+        <div className="absolute inset-0 flex items-center justify-center opacity-30"><LogoLight size={120}/></div>
+        <div className="absolute bottom-3 left-4 px-2.5 py-1 rounded-full bg-white/95 text-[#003399] text-[10px] font-bold uppercase tracking-wider">Закреплено</div>
+      </div>
+      <div className="p-4 space-y-3 flex-1">
+        {VK_POSTS.map(p => (
+          <div key={p.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+            <div className="text-sm leading-relaxed text-slate-800 break-words">{p.text}</div>
+            <div className="mt-2 flex items-center gap-4 text-[11px] text-slate-400 flex-wrap">
+              <span className="truncate">{p.time}</span>
+              <span className="flex items-center gap-1"><Icon name="Heart" size={11}/>{p.likes}</span>
+              <span className="flex items-center gap-1"><Icon name="Repeat2" size={11}/>{p.reposts}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Social() {
+  return (
+    <section id="social" className="relative py-14 md:py-20 bg-slate-50/60 overflow-hidden">
+      {/* wave divider top */}
+      <div className="absolute top-0 left-0 right-0 wave-divider opacity-20 pointer-events-none"></div>
+      <div className="max-w-7xl mx-auto px-5 md:px-8">
+        <SectionHeader
+          eyebrow="Соцсети клуба"
+          title={<>Будь в <span className="text-[#003399]">центре</span><br/>событий</>}
+          action={<a href="#" className="hidden md:inline-flex items-center gap-2 text-sm font-semibold text-[#003399] uppercase tracking-wider hover:gap-3 transition-all shrink-0">Все каналы <Icon name="ArrowRight" size={16}/></a>}
+        />
+
+        {/* Brand cards */}
+        <div className="grid md:grid-cols-3 gap-5 md:gap-6 mb-10 md:mb-14">
+          {SOCIALS.map(s => <SocialBrandCard key={s.id} s={s}/>)}
+        </div>
+
+        {/* Native embed frames */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <InstagramFrame/>
+          <TelegramFrame/>
+          <VKFrame/>
+        </div>
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 wave-divider opacity-20 pointer-events-none"></div>
+    </section>
+  );
+}
+
+function Results() {
+  return (
+    <section id="results" className="py-14 md:py-20 bg-[#0a0e1a] text-white relative overflow-hidden">
+      <div className="absolute top-1/2 -translate-y-1/2 right-[-100px] opacity-[0.04] pointer-events-none">
+        <LogoLight size={520} />
+      </div>
+      <div className="max-w-7xl mx-auto px-5 md:px-8 relative">
+        <SectionHeader
+          dark
+          eyebrow="Архив сезона"
+          title="Результаты"
+          action={
+            <div className="flex gap-2 flex-wrap">
+              {['Все', 'Дом', 'Гости'].map((t, i) => (
+                <button key={t} className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider ${i === 0 ? 'bg-white text-[#003399]' : 'bg-white/10 hover:bg-white/15'}`}>{t}</button>
+              ))}
+            </div>
+          }
+        />
+
+        <div className="rounded-2xl bg-white/[0.04] border border-white/10 overflow-hidden">
+          <div className="grid grid-cols-12 px-5 md:px-7 py-3 text-[10px] uppercase tracking-[0.18em] text-white/40 font-semibold border-b border-white/5">
+            <div className="col-span-2 md:col-span-1">Дата</div>
+            <div className="col-span-3 md:col-span-2">Турнир</div>
+            <div className="col-span-4 md:col-span-5">Матч</div>
+            <div className="col-span-2 text-center">Счёт</div>
+            <div className="col-span-1 text-right">Итог</div>
+          </div>
+          {RECENT.map((r, i) => {
+            const polotskHome = r.home === 'ФК Полоцк';
+            return (
+              <div key={`res-${i}`} className="grid grid-cols-12 px-5 md:px-7 py-5 items-center border-b border-white/5 hover:bg-white/[0.02] transition-colors gap-2">
+                <div className="col-span-2 md:col-span-1 text-sm tabular-nums text-white/60 truncate">{r.date}</div>
+                <div className="col-span-3 md:col-span-2 text-xs text-white/50 uppercase tracking-wider truncate">{r.comp}</div>
+                <div className="col-span-4 md:col-span-5 flex items-center gap-2 md:gap-3 min-w-0">
+                  <span className={`font-medium truncate ${polotskHome ? 'text-white' : 'text-white/60'}`}>{r.home}</span>
+                  <span className="text-white/30 text-xs shrink-0">vs</span>
+                  <span className={`font-medium truncate ${!polotskHome ? 'text-white' : 'text-white/60'}`}>{r.away}</span>
+                </div>
+                <div className="col-span-2 text-center font-display text-xl md:text-2xl tabular-nums tracking-wider">
+                  {r.hs} <span className="text-white/30">·</span> {r.as}
+                </div>
+                <div className="col-span-1 text-right">
+                  <span className={`inline-block w-7 h-7 rounded-full text-[11px] font-bold leading-7 text-center ${
+                    r.result === 'W' ? 'bg-[#003399] text-white' :
+                    r.result === 'L' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+                    'bg-white/10 text-white/60'
+                  }`}>{r.result === 'W' ? 'П' : r.result === 'L' ? 'П' : 'Н'}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px mt-10 bg-white/10 rounded-2xl overflow-hidden">
+          {[
+            { v: '14', l: 'Очков', s: '4-е место' },
+            { v: '4', l: 'Победы', s: 'из 8 матчей' },
+            { v: '12', l: 'Голов забито', s: '+1.5 в среднем' },
+            { v: '6', l: 'Голов пропущено', s: 'лучшие 3' },
+          ].map((s) => (
+            <div key={s.l} className="bg-[#0a0e1a] p-6 md:p-8 min-w-0">
+              <div className="font-display text-5xl md:text-6xl text-[#6ea8ff] tabular-nums leading-none">{s.v}</div>
+              <div className="mt-3 text-sm font-semibold truncate">{s.l}</div>
+              <div className="text-xs text-white/40 mt-1 truncate">{s.s}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  const socialLinks = [
+    { id: 'instagram', icon: <Icon name="Instagram" size={16}/>, label: 'Instagram' },
+    { id: 'telegram', icon: <Icon name="Send" size={16}/>, label: 'Telegram' },
+    { id: 'vk', icon: <VKIcon size={16}/>, label: 'ВКонтакте' },
+    { id: 'youtube', icon: <Icon name="Youtube" size={16}/>, label: 'YouTube' },
+  ];
+  return (
+    <footer className="bg-[#003399] text-white relative overflow-hidden">
+      <div className="absolute -bottom-32 -right-20 opacity-10 pointer-events-none">
+        <LogoLight size={500} />
+      </div>
+      <div className="absolute inset-0 grain opacity-20 mix-blend-overlay pointer-events-none"></div>
+      {/* top wave divider */}
+      <div className="absolute top-0 left-0 right-0 wave-divider-light opacity-30"></div>
+
+      <div className="max-w-7xl mx-auto px-5 md:px-8 py-12 md:py-14 relative">
+        <div className="grid md:grid-cols-12 gap-10">
+          <div className="md:col-span-5 min-w-0">
+            <div className="flex items-center gap-4 mb-6">
+              <LogoLight size={64} />
+              <div className="min-w-0">
+                <div className="font-display text-3xl tracking-wider truncate">ФК ПОЛОЦК</div>
+                <div className="text-xs uppercase tracking-[0.25em] text-white/60 truncate">Football Club · Est. 2019</div>
+              </div>
+            </div>
+            <p className="text-white/70 max-w-md leading-relaxed text-sm">
+              Профессиональный футбольный клуб из Полоцка. Гордость Витебской области, ладья на парусах белорусского футбола.
+            </p>
+            <div className="flex items-center gap-3 mt-7 flex-wrap">
+              {socialLinks.map((s) => (
+                <a key={s.id} href="#" aria-label={s.label} className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-white hover:text-[#003399] transition-colors shrink-0">
+                  {s.icon}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div className="md:col-span-2 min-w-0">
+            <div className="text-[10px] uppercase tracking-[0.25em] text-white/50 font-semibold mb-4">Клуб</div>
+            <ul className="space-y-2.5 text-sm text-white/80">
+              <li><a href="#team" className="hover:text-white">Команда</a></li>
+              <li><a href="#" className="hover:text-white">Тренерский штаб</a></li>
+              <li><a href="#" className="hover:text-white">Академия</a></li>
+              <li><a href="#" className="hover:text-white">История</a></li>
+            </ul>
+          </div>
+
+          <div className="md:col-span-2 min-w-0">
+            <div className="text-[10px] uppercase tracking-[0.25em] text-white/50 font-semibold mb-4">Матчи</div>
+            <ul className="space-y-2.5 text-sm text-white/80">
+              <li><a href="#matches" className="hover:text-white">Расписание</a></li>
+              <li><a href="#results" className="hover:text-white">Результаты</a></li>
+              <li><a href="#" className="hover:text-white">Турнирная таблица</a></li>
+            </ul>
+          </div>
+
+          <div className="md:col-span-3 min-w-0">
+            <div className="text-[10px] uppercase tracking-[0.25em] text-white/50 font-semibold mb-4">Контакты</div>
+            <ul className="space-y-2.5 text-sm text-white/80">
+              <li className="flex items-start gap-2"><Icon name="MapPin" size={14} className="mt-0.5 shrink-0"/><span>ул. Стадионная, 1<br/>Полоцк, 211400</span></li>
+              <li className="flex items-center gap-2"><Icon name="Phone" size={14} className="shrink-0"/><span className="truncate">+375 (214) 00-00-00</span></li>
+              <li className="flex items-center gap-2"><Icon name="Mail" size={14} className="shrink-0"/><span className="truncate">info@fcpolotsk.by</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t border-white/15 mt-14 pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4 text-xs text-white/50 flex-wrap">
+            <div className="font-display text-2xl tracking-wider">2019</div>
+            <div className="h-4 w-px bg-white/20"></div>
+            <div>© ФК Полоцк. Все права защищены.</div>
+          </div>
+          <div className="flex items-center gap-5 text-xs text-white/50 flex-wrap">
+            <a href="#" className="hover:text-white">Политика конфиденциальности</a>
+            <a href="#" className="hover:text-white">Правила пользования</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function App() {
+  const [activeSection, setActiveSection] = useState('top');
+  useEffect(() => {
+    const ids = ['top', ...NAV.map(n => n.id)];
+    const onScroll = () => {
+      let current = 'top';
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= 120) current = id;
+      }
+      setActiveSection(current);
+    };
+    window.addEventListener('scroll', onScroll);
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  return (
+    <div data-screen-label="FC Polotsk Home">
+      <Header activeSection={activeSection} />
+      <Hero />
+      <MatchCenter />
+      <News />
+      <Team />
+      <Social />
+      <Results />
+      <Footer />
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+</script>
+</body>
+</html>
