@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
-import { Bebas_Neue, Inter } from "next/font/google";
+import { Oswald, Inter } from "next/font/google";
 import "./globals.css";
 import { SITE } from "@/lib/constants";
 
-const bebas = Bebas_Neue({
-  weight: "400",
+/**
+ * Display font: Oswald.
+ *
+ * Bebas Neue (originally specified in the design handoff) does NOT ship a
+ * cyrillic subset on Google Fonts. We swap to Oswald — same condensed-sans
+ * character, full cyrillic coverage, variable weight 200–700.
+ */
+const display = Oswald({
   subsets: ["latin", "cyrillic"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-display",
   display: "swap",
 });
 
-const inter = Inter({
+const body = Inter({
   subsets: ["latin", "cyrillic"],
   weight: ["400", "500", "600", "700", "800"],
   variable: "--font-body",
@@ -35,7 +42,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ru" className={`${bebas.variable} ${inter.variable}`}>
+    <html lang="ru" className={`${display.variable} ${body.variable}`}>
       <body className="flex min-h-screen flex-col">{children}</body>
     </html>
   );

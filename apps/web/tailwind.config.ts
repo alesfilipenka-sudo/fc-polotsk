@@ -10,6 +10,9 @@ import type { Config } from "tailwindcss";
  * - polotsk-700 / polotsk-900 are deep navy for hovers and dark sections.
  * - polotsk-300 is the light accent (used in eyebrows, large numerals).
  * - ink is the near-black used for the Results section background.
+ *
+ * Display font: Oswald (cyrillic-supporting). Bebas Neue from the original
+ * handoff has no cyrillic subset on Google Fonts.
  */
 const config: Config = {
   content: [
@@ -26,7 +29,7 @@ const config: Config = {
           200: "#aebde9",
           300: "#7e96d8",
           400: "#5273c2",
-          500: "#234794", // brand primary (logo)
+          500: "#234794",
           600: "#1d3c7d",
           700: "#173066",
           800: "#11244e",
@@ -42,7 +45,7 @@ const config: Config = {
         ink: "#0a0e1a",
       },
       fontFamily: {
-        display: ["var(--font-display)", "Bebas Neue", "Impact", "sans-serif"],
+        display: ["var(--font-display)", "Oswald", "Impact", "sans-serif"],
         body: [
           "var(--font-body)",
           "Inter",
