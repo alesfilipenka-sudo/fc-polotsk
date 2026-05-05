@@ -5,7 +5,7 @@
   "description": "FC Polotsk — official football club website monorepo (web + studio).",
   "packageManager": "pnpm@10.16.1",
   "engines": {
-    "node": ">=20.0.0"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "pnpm --filter @fc-polotsk/web dev",
