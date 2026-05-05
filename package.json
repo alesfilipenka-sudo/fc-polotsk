@@ -11,6 +11,10 @@
     "dev": "pnpm --filter @fc-polotsk/web dev",
     "build": "pnpm --filter @fc-polotsk/web build",
     "start": "pnpm --filter @fc-polotsk/web start",
+    "studio": "pnpm --filter @fc-polotsk/studio dev",
+    "studio:build": "pnpm --filter @fc-polotsk/studio build",
+    "studio:deploy": "pnpm --filter @fc-polotsk/studio deploy",
+    "studio:seed": "pnpm --filter @fc-polotsk/studio seed",
     "lint": "pnpm -r --parallel lint",
     "typecheck": "pnpm -r --parallel typecheck"
   }

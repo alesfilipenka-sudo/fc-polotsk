@@ -1,0 +1,14 @@
+# Sanity build output
+dist
+.sanity
+
+# Compiled native deps
+*.tsbuildinfo
+
+# Local env
+.env
+.env.local
+.env*.local
+
+# OS
+.DS_Store
