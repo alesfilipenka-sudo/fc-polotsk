@@ -11,8 +11,8 @@ import type { Config } from "tailwindcss";
  * - polotsk-300 is the light accent (used in eyebrows, large numerals).
  * - ink is the near-black used for the Results section background.
  *
- * Display font: Oswald (cyrillic-supporting). Bebas Neue from the original
- * handoff has no cyrillic subset on Google Fonts.
+ * Fonts loaded via <link> in app/layout.tsx (Google Fonts CDN).
+ * Bebas Neue from the original handoff swapped to Oswald (cyrillic-supporting).
  */
 const config: Config = {
   content: [
@@ -45,14 +45,8 @@ const config: Config = {
         ink: "#0a0e1a",
       },
       fontFamily: {
-        display: ["var(--font-display)", "Oswald", "Impact", "sans-serif"],
-        body: [
-          "var(--font-body)",
-          "Inter",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "sans-serif",
-        ],
+        display: ["Oswald", "Impact", "Arial Narrow", "sans-serif"],
+        body: ["Inter", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
       },
       letterSpacing: {
         eyebrow: "0.25em",

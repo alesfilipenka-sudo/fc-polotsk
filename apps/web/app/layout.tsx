@@ -1,28 +1,6 @@
 import type { Metadata } from "next";
-import { Oswald, Inter } from "next/font/google";
 import "./globals.css";
 import { SITE } from "@/lib/constants";
-
-/**
- * Display font: Oswald.
- *
- * Bebas Neue (originally specified in the design handoff) does NOT ship a
- * cyrillic subset on Google Fonts. We swap to Oswald — same condensed-sans
- * character, full cyrillic coverage, variable weight 200–700.
- */
-const display = Oswald({
-  subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-display",
-  display: "swap",
-});
-
-const body = Inter({
-  subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-body",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: `${SITE.name} — Официальный сайт футбольного клуба`,
@@ -42,7 +20,19 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ru" className={`${display.variable} ${body.variable}`}>
+    <html lang="ru">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
+        />
+      </head>
       <body className="flex min-h-screen flex-col">{children}</body>
     </html>
   );
