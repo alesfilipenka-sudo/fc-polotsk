@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "FC Polotsk — official football club website monorepo (web + studio).",
-  "packageManager": "pnpm@9.15.9",
+  "packageManager": "pnpm@10.16.1",
   "engines": {
     "node": ">=20.0.0"
   },
