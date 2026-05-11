@@ -3,6 +3,8 @@ import { Phone, Mail, MapPin, Instagram, Send, Youtube } from "lucide-react";
 import { LogoLight } from "./Logo";
 import { VKIcon } from "./icons/VKIcon";
 import { SITE } from "@/lib/constants";
+import { sanityFetch } from "@/lib/sanity";
+import { SITE_SETTINGS_QUERY } from "@/lib/queries";
 
 const COLUMNS = [
   {
@@ -31,11 +33,33 @@ const FOOTER_SOCIAL = [
   { Icon: Youtube, href: "https://youtube.com/", label: "YouTube" },
 ];
 
-export function Footer() {
+interface FooterSettings {
+  footerDescription?: string;
+  establishedYear?: number;
+  city?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+}
+
+export async function Footer() {
+  const settings = await sanityFetch<FooterSettings>(SITE_SETTINGS_QUERY);
+
+  const description =
+    settings?.footerDescription ??
+    `Профессиональный футбольный клуб из Полоцка. Высшая лига Беларуси, сезон ${SITE.season}.`;
+  const year = settings?.establishedYear ?? 2019;
+  const phone = settings?.phone ?? "+375 (00) 000-00-00";
+  const email = settings?.email ?? "info@fcpolotsk.by";
+  const address = settings?.address ?? settings?.city ?? SITE.city;
+
   return (
     <footer className="relative overflow-hidden bg-polotsk-500 text-white">
       <div className="wave-divider-light absolute inset-x-0 top-0" aria-hidden />
-      <div className="grain pointer-events-none absolute inset-0 opacity-30 mix-blend-overlay" aria-hidden />
+      <div
+        className="grain pointer-events-none absolute inset-0 opacity-30 mix-blend-overlay"
+        aria-hidden
+      />
       <LogoLight
         size={500}
         opacity={0.08}
@@ -49,14 +73,11 @@ export function Footer() {
             <div>
               <p className="font-display text-2xl leading-none">{SITE.name}</p>
               <p className="text-xs uppercase tracking-eyebrow text-white/60">
-                {SITE.tagline}
+                Football Club · Est. {year}
               </p>
             </div>
           </div>
-          <p className="mt-5 max-w-md text-sm text-white/75">
-            Профессиональный футбольный клуб из Полоцка.
-            Высшая лига Беларуси, сезон {SITE.season}.
-          </p>
+          <p className="mt-5 max-w-md text-sm text-white/75">{description}</p>
           <div className="mt-6 flex gap-2">
             {FOOTER_SOCIAL.map(({ Icon, href, label }) => (
               <a
@@ -97,18 +118,18 @@ export function Footer() {
           <ul className="space-y-3 text-sm text-white/85">
             <li className="flex items-start gap-3">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-polotsk-300" />
-              <span>{SITE.city}</span>
+              <span>{address}</span>
             </li>
             <li className="flex items-start gap-3">
               <Phone className="mt-0.5 h-4 w-4 shrink-0 text-polotsk-300" />
-              <a href="tel:+375000000000" className="hover:text-white">
-                +375 (00) 000-00-00
+              <a href={`tel:${phone.replace(/\s/g, "")}`} className="hover:text-white">
+                {phone}
               </a>
             </li>
             <li className="flex items-start gap-3">
               <Mail className="mt-0.5 h-4 w-4 shrink-0 text-polotsk-300" />
-              <a href="mailto:info@fcpolotsk.by" className="hover:text-white">
-                info@fcpolotsk.by
+              <a href={`mailto:${email}`} className="hover:text-white">
+                {email}
               </a>
             </li>
           </ul>
@@ -118,7 +139,9 @@ export function Footer() {
       <div className="relative border-t border-white/15">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-5 text-xs text-white/60 md:flex-row md:items-center md:justify-between md:px-8">
           <div className="flex items-center gap-3">
-            <span className="font-display text-lg leading-none text-white">2019</span>
+            <span className="font-display text-lg leading-none text-white">
+              {year}
+            </span>
             <span>© {SITE.name}. Все права защищены.</span>
           </div>
           <div className="flex gap-5">
