@@ -53,6 +53,12 @@ importers:
 
   apps/web:
     dependencies:
+      '@sanity/client':
+        specifier: ^6.22.5
+        version: 6.29.1
+      '@sanity/image-url':
+        specifier: ^1.1.0
+        version: 1.2.0
       lucide-react:
         specifier: ^0.468.0
         version: 0.468.0(react@19.2.5)
