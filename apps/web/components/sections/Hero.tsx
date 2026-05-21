@@ -3,6 +3,7 @@ import { LogoLight, LogoDecor } from "../Logo";
 import { SITE } from "@/lib/constants";
 import { sanityFetch } from "@/lib/sanity";
 import { SITE_SETTINGS_QUERY } from "@/lib/queries";
+import { formatMatchDate, formatMatchTime } from "@/lib/dateFormat";
 
 interface TeamRef {
   name?: string;
@@ -156,20 +157,10 @@ export async function Hero() {
               </div>
               <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-xs text-white/70">
                 <span>
-                  {next?.date
-                    ? new Date(next.date).toLocaleDateString("ru-RU", {
-                        day: "2-digit",
-                        month: "long",
-                      })
-                    : "Дата уточняется"}
+                  {next?.date ? formatMatchDate(next.date) : "Дата уточняется"}
                 </span>
                 <span>
-                  {next?.date
-                    ? new Date(next.date).toLocaleTimeString("ru-RU", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : "—:—"}
+                  {next?.date ? formatMatchTime(next.date) : "—:—"}
                 </span>
               </div>
             </div>

@@ -1,6 +1,7 @@
 import { SectionHeader } from "../SectionHeader";
 import { sanityFetch } from "@/lib/sanity";
 import { RESULTS_QUERY } from "@/lib/queries";
+import { formatShortDate } from "@/lib/dateFormat";
 
 interface TeamRef {
   name?: string;
@@ -132,10 +133,7 @@ export async function Results() {
                 >
                   <div className="md:grid md:grid-cols-12 md:items-center md:gap-4 text-sm">
                     <p className="text-white/60 md:col-span-2">
-                      {new Date(m.date).toLocaleDateString("ru-RU", {
-                        day: "2-digit",
-                        month: "short",
-                      })}
+                      {formatShortDate(m.date)}
                     </p>
                     <p className="text-white/70 md:col-span-3 truncate mt-0.5 md:mt-0">
                       {m.competition ?? "Высшая лига"}

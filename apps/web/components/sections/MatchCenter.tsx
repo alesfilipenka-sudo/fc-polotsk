@@ -7,6 +7,7 @@ import {
   RECENT_MATCHES_QUERY,
   STANDINGS_QUERY,
 } from "@/lib/queries";
+import { formatMatchDate, formatMatchTime, formatShortDate } from "@/lib/dateFormat";
 
 interface TeamRef {
   name?: string;
@@ -42,20 +43,7 @@ interface Standings {
   rows?: StandingsRow[];
 }
 
-function formatDate(iso?: string) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("ru-RU", {
-    day: "2-digit",
-    month: "long",
-  });
-}
-function formatTime(iso?: string) {
-  if (!iso) return "—:—";
-  return new Date(iso).toLocaleTimeString("ru-RU", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+
 function resultMark(m: RecentMatch): "W" | "L" | "D" | null {
   if (m.hs == null || m.as == null) return null;
   const polotskHome = m.home?.isOwn;
@@ -169,8 +157,8 @@ export async function MatchCenter() {
 
               <div className="mt-8 grid grid-cols-1 gap-4 border-t border-white/10 pt-6 md:grid-cols-3">
                 {[
-                  { Icon: Calendar, label: "Дата", value: formatDate(next?.date) },
-                  { Icon: Clock, label: "Начало", value: formatTime(next?.date) },
+                  { Icon: Calendar, label: "Дата", value: formatMatchDate(next?.date) },
+                  { Icon: Clock, label: "Начало", value: formatMatchTime(next?.date) },
                   {
                     Icon: MapPin,
                     label: "Стадион",
@@ -258,10 +246,7 @@ export async function MatchCenter() {
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-[11px] uppercase tracking-eyebrow text-slate-400">
-                          {new Date(m.date).toLocaleDateString("ru-RU", {
-                            day: "2-digit",
-                            month: "short",
-                          })}
+                          {formatShortDate(m.date)}
                         </p>
                         <p className="truncate text-sm text-slate-700">
                           {m.home?.name ?? "?"} — {m.away?.name ?? "?"}
