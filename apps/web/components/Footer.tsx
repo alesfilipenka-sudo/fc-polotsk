@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Phone, Mail, MapPin, Instagram, Send, Youtube } from "lucide-react";
-import { LogoLight } from "./Logo";
+import { LogoLight, LogoDecor } from "./Logo";
 import { VKIcon } from "./icons/VKIcon";
 import { SITE } from "@/lib/constants";
 import { sanityFetch } from "@/lib/sanity";
@@ -60,9 +60,9 @@ export async function Footer() {
         className="grain pointer-events-none absolute inset-0 opacity-30 mix-blend-overlay"
         aria-hidden
       />
-      <LogoLight
+      <LogoDecor
         size={500}
-        opacity={0.08}
+        opacity={0.10}
         className="pointer-events-none absolute -bottom-20 -right-24"
       />
 

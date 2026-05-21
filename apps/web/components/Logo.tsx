@@ -30,8 +30,8 @@ interface LogoLightProps {
 }
 
 /**
- * White-tinted logo for use on dark backgrounds. Uses CSS mask-image so the
- * single PNG asset works on either theme without a second file.
+ * White-tinted logo (solid silhouette via CSS mask). Used on dark backgrounds
+ * where a flat white shape is desired — e.g. small header / footer brand.
  */
 export function LogoLight({ size = 32, className, opacity = 1 }: LogoLightProps) {
   return (
@@ -52,6 +52,36 @@ export function LogoLight({ size = 32, className, opacity = 1 }: LogoLightProps)
         WebkitMaskSize: "contain",
         maskSize: "contain",
       }}
+    />
+  );
+}
+
+interface LogoDecorProps {
+  size?: number;
+  className?: string;
+  opacity?: number;
+}
+
+/**
+ * Decorative full-color logo for background corners (next match card,
+ * footer, news placeholders, hero bg). Renders the real PNG with low
+ * opacity so blue parts of the crest blend with the block's blue
+ * background — keeps the boat / club name visible instead of collapsing
+ * to a flat silhouette.
+ */
+export function LogoDecor({
+  size = 300,
+  className,
+  opacity = 0.08,
+}: LogoDecorProps) {
+  return (
+    <img
+      src="/logo.png"
+      alt=""
+      aria-hidden
+      draggable={false}
+      className={cn("pointer-events-none select-none object-contain", className)}
+      style={{ width: size, height: size, opacity }}
     />
   );
 }

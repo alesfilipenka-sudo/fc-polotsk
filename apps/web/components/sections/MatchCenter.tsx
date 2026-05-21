@@ -1,6 +1,6 @@
 import { Calendar, Clock, MapPin, ArrowRight, CalendarPlus } from "lucide-react";
 import { SectionHeader } from "../SectionHeader";
-import { LogoLight } from "../Logo";
+import { LogoLight, LogoDecor } from "../Logo";
 import { sanityFetch } from "@/lib/sanity";
 import {
   SITE_SETTINGS_QUERY,
@@ -77,7 +77,16 @@ function TeamLogo({ team, size = 56 }: { team?: TeamRef; size?: number }) {
       />
     );
   }
-  if (team?.isOwn) return <LogoLight size={size} />;
+  if (team?.isOwn) {
+    return (
+      <img
+        src="/logo.png"
+        alt="ФК Полоцк"
+        className="object-contain"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
   return (
     <span
       className="inline-flex items-center justify-center rounded-full border border-white/20 font-display text-sm"
@@ -114,9 +123,9 @@ export async function MatchCenter() {
         <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
           {/* Next match card */}
           <div className="relative overflow-hidden rounded-3xl bg-polotsk-500 p-6 text-white md:p-10 lg:col-span-7">
-            <LogoLight
+            <LogoDecor
               size={300}
-              opacity={0.06}
+              opacity={0.08}
               className="pointer-events-none absolute -right-12 -bottom-12 hidden md:block"
             />
             <div className="relative">

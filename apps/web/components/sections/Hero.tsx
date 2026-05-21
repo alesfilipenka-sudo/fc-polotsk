@@ -1,5 +1,5 @@
 import { ArrowRight, MapPin } from "lucide-react";
-import { LogoLight } from "../Logo";
+import { LogoLight, LogoDecor } from "../Logo";
 import { SITE } from "@/lib/constants";
 import { sanityFetch } from "@/lib/sanity";
 import { SITE_SETTINGS_QUERY } from "@/lib/queries";
@@ -42,7 +42,7 @@ function TeamSide({
           className="h-10 w-10 object-contain"
         />
       ) : team?.isOwn ? (
-        <LogoLight size={40} />
+        <img src="/logo.png" alt="ФК Полоцк" className="h-10 w-10 object-contain" />
       ) : (
         <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 font-display text-xs">
           {team?.short ?? "?"}
@@ -79,9 +79,9 @@ export async function Hero() {
         className="grain pointer-events-none absolute inset-0 opacity-40 mix-blend-overlay"
         aria-hidden
       />
-      <LogoLight
+      <LogoDecor
         size={420}
-        opacity={0.05}
+        opacity={0.08}
         className="pointer-events-none absolute right-[-60px] top-1/2 hidden -translate-y-1/2 md:block"
       />
 

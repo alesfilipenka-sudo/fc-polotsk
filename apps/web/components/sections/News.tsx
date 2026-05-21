@@ -1,6 +1,6 @@
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import { SectionHeader } from "../SectionHeader";
-import { LogoLight } from "../Logo";
+import { LogoDecor } from "../Logo";
 import { sanityFetch } from "@/lib/sanity";
 import { NEWS_QUERY } from "@/lib/queries";
 
@@ -82,11 +82,7 @@ export async function News() {
                 >
                   <div className="grain pointer-events-none absolute inset-0 opacity-30 mix-blend-overlay" />
                   {!hasImage ? (
-                    <LogoLight
-                      size={140}
-                      opacity={0.08}
-                      className="pointer-events-none absolute -bottom-6 -right-6"
-                    />
+                    <LogoDecor size={140} opacity={0.10} className="pointer-events-none absolute -bottom-6 -right-6" />
                   ) : null}
                   <span
                     className={`absolute left-4 top-4 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider shadow-sm ${tagClass}`}
