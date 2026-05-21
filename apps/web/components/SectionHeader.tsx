@@ -9,8 +9,9 @@ interface SectionHeaderProps {
 }
 
 /**
- * Reusable section heading: small uppercase eyebrow + display-font title +
- * optional action (link or button) on the right.
+ * Reusable section heading: eyebrow + display title + optional right action.
+ * On mobile (<sm) the action wraps to a new line under the title so filters
+ * don't collide with the heading text.
  */
 export function SectionHeader({
   eyebrow,
@@ -19,11 +20,11 @@ export function SectionHeader({
   dark = false,
 }: SectionHeaderProps) {
   return (
-    <div className="mb-10 flex items-end justify-between gap-6 md:mb-14">
+    <div className="mb-8 flex flex-col gap-4 md:mb-12 md:flex-row md:items-end md:justify-between md:gap-6">
       <div className="min-w-0">
         <p
           className={cn(
-            "mb-3 text-xs font-semibold uppercase tracking-eyebrow",
+            "mb-2 text-xs font-semibold uppercase tracking-eyebrow md:mb-3",
             dark ? "text-polotsk-300" : "text-polotsk-500",
           )}
         >
@@ -31,14 +32,16 @@ export function SectionHeader({
         </p>
         <h2
           className={cn(
-            "font-display text-4xl leading-[0.9] md:text-6xl",
+            "font-display text-3xl leading-[0.9] sm:text-4xl md:text-6xl",
             dark ? "text-white" : "text-slate-900",
           )}
         >
           {title}
         </h2>
       </div>
-      {action ? <div className="shrink-0">{action}</div> : null}
+      {action ? (
+        <div className="shrink-0 flex flex-wrap gap-2">{action}</div>
+      ) : null}
     </div>
   );
 }

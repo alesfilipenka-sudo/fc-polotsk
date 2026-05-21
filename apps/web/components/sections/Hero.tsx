@@ -4,6 +4,12 @@ import { SITE } from "@/lib/constants";
 import { sanityFetch } from "@/lib/sanity";
 import { SITE_SETTINGS_QUERY } from "@/lib/queries";
 
+interface TeamRef {
+  name?: string;
+  short?: string;
+  logo?: string;
+  isOwn?: boolean;
+}
 interface SiteSettings {
   heroBadge?: string;
   heroLine1?: string;
@@ -12,16 +18,48 @@ interface SiteSettings {
   city?: string;
   nextMatch?: {
     tour?: number;
-    home?: { name?: string; short?: string; isOwn?: boolean };
-    away?: { name?: string; short?: string; isOwn?: boolean };
+    home?: TeamRef;
+    away?: TeamRef;
     date?: string;
   } | null;
+}
+
+function TeamSide({
+  team,
+  side,
+}: {
+  team?: TeamRef;
+  side: "home" | "away";
+}) {
+  const label = side === "home" ? "Дома" : "Гости";
+  const name = team?.name ?? (side === "home" ? "Дома" : "Гости");
+  return (
+    <div className="flex flex-col items-center gap-2 text-center min-w-0">
+      {team?.logo ? (
+        <img
+          src={team.logo}
+          alt={name}
+          className="h-10 w-10 object-contain"
+        />
+      ) : team?.isOwn ? (
+        <LogoLight size={40} />
+      ) : (
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 font-display text-xs">
+          {team?.short ?? "?"}
+        </span>
+      )}
+      <p className="font-display text-sm truncate max-w-full">{name}</p>
+      <p className="text-[10px] uppercase tracking-eyebrow text-white/60">
+        {label}
+      </p>
+    </div>
+  );
 }
 
 export async function Hero() {
   const settings = await sanityFetch<SiteSettings | null>(
     SITE_SETTINGS_QUERY,
-  ).catch(() => null);
+  );
 
   const badge = settings?.heroBadge ?? `Сезон ${SITE.season} · ${SITE.league}`;
   const line1 = settings?.heroLine1 ?? "НОВАЯ";
@@ -90,39 +128,27 @@ export async function Hero() {
             </div>
           </div>
 
-          {/* Glass card */}
+          {/* Glass card with next match */}
           <div className="md:col-span-5">
-            <div className="rounded-2xl border border-white/15 bg-white/[0.07] p-6 backdrop-blur-md md:p-7">
-              <div className="flex items-center justify-between text-xs uppercase tracking-eyebrow text-white/60">
+            <div className="rounded-2xl border border-white/15 bg-white/[0.07] p-5 backdrop-blur-md md:p-7">
+              <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-eyebrow text-white/60">
                 <span>Следующий матч</span>
-                <span>{next?.tour ? `Тур ${next.tour}` : "—"}</span>
+                <span className="truncate">{next?.tour ? `Тур ${next.tour}` : ""}</span>
               </div>
-              <div className="mt-5 grid grid-cols-3 items-center gap-4 text-center">
-                <div className="flex flex-col items-center gap-2">
-                  <LogoLight size={40} />
-                  <p className="font-display text-sm">
-                    {next?.home?.isOwn ? "Полоцк" : (next?.home?.name ?? "Полоцк")}
-                  </p>
-                </div>
+              <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-4">
+                <TeamSide team={next?.home} side="home" />
                 <div className="font-display text-2xl tabular-nums text-polotsk-300">
                   VS
                 </div>
-                <div className="flex flex-col items-center gap-2">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 font-display text-xs">
-                    {next?.away?.short ?? "БРЕ"}
-                  </span>
-                  <p className="font-display text-sm">
-                    {next?.away?.name ?? "Брест"}
-                  </p>
-                </div>
+                <TeamSide team={next?.away} side="away" />
               </div>
-              <div className="mt-5 grid grid-cols-4 gap-3 border-t border-white/10 pt-5 text-center">
+              <div className="mt-5 grid grid-cols-4 gap-2 border-t border-white/10 pt-5 text-center sm:gap-3">
                 {["Дней", "Часов", "Минут", "Секунд"].map((label) => (
                   <div key={label}>
-                    <p className="font-display text-3xl tabular-nums text-white">
+                    <p className="font-display text-2xl tabular-nums text-white sm:text-3xl">
                       --
                     </p>
-                    <p className="mt-1 text-[10px] uppercase tracking-eyebrow text-white/60">
+                    <p className="mt-1 text-[9px] uppercase tracking-eyebrow text-white/60 sm:text-[10px]">
                       {label}
                     </p>
                   </div>

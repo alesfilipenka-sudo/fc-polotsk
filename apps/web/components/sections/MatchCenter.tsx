@@ -11,6 +11,7 @@ import {
 interface TeamRef {
   name?: string;
   short?: string;
+  logo?: string;
   isOwn?: boolean;
 }
 interface NextMatch {
@@ -55,8 +56,8 @@ function formatTime(iso?: string) {
     minute: "2-digit",
   });
 }
-function resultMark(m: RecentMatch): "W" | "L" | "D" | "—" {
-  if (m.hs == null || m.as == null) return "—";
+function resultMark(m: RecentMatch): "W" | "L" | "D" | null {
+  if (m.hs == null || m.as == null) return null;
   const polotskHome = m.home?.isOwn;
   const our = polotskHome ? m.hs : m.as;
   const their = polotskHome ? m.as : m.hs;
@@ -65,13 +66,33 @@ function resultMark(m: RecentMatch): "W" | "L" | "D" | "—" {
   return "D";
 }
 
+function TeamLogo({ team, size = 56 }: { team?: TeamRef; size?: number }) {
+  if (team?.logo) {
+    return (
+      <img
+        src={team.logo}
+        alt={team.name ?? ""}
+        className="object-contain"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  if (team?.isOwn) return <LogoLight size={size} />;
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-full border border-white/20 font-display text-sm"
+      style={{ width: size, height: size }}
+    >
+      {team?.short ?? "?"}
+    </span>
+  );
+}
+
 export async function MatchCenter() {
   const [settings, recent, standings] = await Promise.all([
-    sanityFetch<{ nextMatch?: NextMatch | null }>(SITE_SETTINGS_QUERY).catch(
-      () => null,
-    ),
-    sanityFetch<RecentMatch[]>(RECENT_MATCHES_QUERY).catch(() => null),
-    sanityFetch<Standings | null>(STANDINGS_QUERY).catch(() => null),
+    sanityFetch<{ nextMatch?: NextMatch | null }>(SITE_SETTINGS_QUERY),
+    sanityFetch<RecentMatch[]>(RECENT_MATCHES_QUERY),
+    sanityFetch<Standings | null>(STANDINGS_QUERY),
   ]);
 
   const next = settings?.nextMatch;
@@ -92,45 +113,47 @@ export async function MatchCenter() {
 
         <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
           {/* Next match card */}
-          <div className="relative overflow-hidden rounded-3xl bg-polotsk-500 p-7 text-white md:p-10 lg:col-span-7">
+          <div className="relative overflow-hidden rounded-3xl bg-polotsk-500 p-6 text-white md:p-10 lg:col-span-7">
             <LogoLight
               size={300}
               opacity={0.06}
-              className="pointer-events-none absolute -right-12 -bottom-12"
+              className="pointer-events-none absolute -right-12 -bottom-12 hidden md:block"
             />
             <div className="relative">
-              <div className="flex items-center justify-between text-xs uppercase tracking-eyebrow text-white/70">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs uppercase tracking-eyebrow text-white/70">
                 <span>Следующий матч</span>
-                <span>{next?.competition ?? "Высшая лига"}</span>
+                <span className="truncate max-w-full md:max-w-[60%]">
+                  {next?.competition ?? "Высшая лига"}
+                </span>
               </div>
 
-              <div className="mt-7 grid grid-cols-3 items-center gap-4">
-                <div className="flex flex-col items-center gap-2 text-center md:items-start md:text-left">
-                  <LogoLight size={56} />
-                  <p className="font-display text-xl md:text-2xl">
-                    {next?.home?.name ?? "Полоцк"}
+              <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3 md:gap-4">
+                {/* Home — always left */}
+                <div className="flex flex-col items-center gap-2 text-center min-w-0">
+                  <TeamLogo team={next?.home} size={56} />
+                  <p className="font-display text-base md:text-2xl truncate max-w-full">
+                    {next?.home?.name ?? "Хозяева"}
                   </p>
-                  <p className="text-xs uppercase tracking-eyebrow text-white/60">
-                    {next?.home?.isOwn ? "Дома" : "Гости"}
+                  <p className="text-[10px] uppercase tracking-eyebrow text-white/60">
+                    Дома
                   </p>
                 </div>
-                <div className="text-center">
-                  <p className="font-display text-4xl tabular-nums text-polotsk-300 md:text-5xl">
+                <div className="text-center min-w-[60px]">
+                  <p className="font-display text-3xl tabular-nums text-polotsk-300 md:text-5xl">
                     VS
                   </p>
-                  <p className="mt-2 text-xs uppercase tracking-eyebrow text-white/60">
-                    {next?.tour ? `Тур ${next.tour}` : "Дата уточняется"}
+                  <p className="mt-1 text-[10px] uppercase tracking-eyebrow text-white/60">
+                    {next?.tour ? `Тур ${next.tour}` : ""}
                   </p>
                 </div>
-                <div className="flex flex-col items-center gap-2 text-center md:items-end md:text-right">
-                  <span className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-white/20 font-display text-sm">
-                    {next?.away?.short ?? "?"}
-                  </span>
-                  <p className="font-display text-xl md:text-2xl">
-                    {next?.away?.name ?? "Соперник"}
+                {/* Away — always right */}
+                <div className="flex flex-col items-center gap-2 text-center min-w-0">
+                  <TeamLogo team={next?.away} size={56} />
+                  <p className="font-display text-base md:text-2xl truncate max-w-full">
+                    {next?.away?.name ?? "Гости"}
                   </p>
-                  <p className="text-xs uppercase tracking-eyebrow text-white/60">
-                    {next?.away?.isOwn ? "Дома" : "Гости"}
+                  <p className="text-[10px] uppercase tracking-eyebrow text-white/60">
+                    Гости
                   </p>
                 </div>
               </div>
@@ -147,11 +170,11 @@ export async function MatchCenter() {
                 ].map(({ Icon, label, value }) => (
                   <div key={label} className="flex items-start gap-3">
                     <Icon className="mt-0.5 h-4 w-4 text-polotsk-300" />
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-[10px] uppercase tracking-eyebrow text-white/60">
                         {label}
                       </p>
-                      <p className="text-sm">{value}</p>
+                      <p className="text-sm truncate">{value}</p>
                     </div>
                   </div>
                 ))}
@@ -184,7 +207,7 @@ export async function MatchCenter() {
               <ul className="divide-y divide-slate-100">
                 {(recentList.length > 0
                   ? recentList
-                  : Array.from({ length: 4 }, (_, i) => null)
+                  : (Array.from({ length: 4 }, () => null) as null[])
                 ).map((m, i) => {
                   if (!m) {
                     return (
@@ -198,7 +221,7 @@ export async function MatchCenter() {
                             — апр
                           </p>
                           <p className="truncate text-sm text-slate-700">
-                            vs соперник
+                            Полоцк — соперник
                           </p>
                         </div>
                         <span className="font-display text-2xl tabular-nums text-slate-400">
@@ -208,18 +231,18 @@ export async function MatchCenter() {
                     );
                   }
                   const r = resultMark(m);
-                  const polotskHome = m.home?.isOwn;
-                  const opp = polotskHome ? m.away : m.home;
                   const stripeColor =
                     r === "W"
                       ? "bg-polotsk-500"
                       : r === "L"
                       ? "bg-red-400"
-                      : "bg-slate-300";
+                      : r === "D"
+                      ? "bg-slate-400"
+                      : "bg-slate-200";
                   return (
                     <li
                       key={m._id}
-                      className="flex items-center gap-4 py-3"
+                      className="flex items-center gap-3 py-3"
                     >
                       <span
                         className={`h-8 w-1 shrink-0 rounded-full ${stripeColor}`}
@@ -232,11 +255,10 @@ export async function MatchCenter() {
                           })}
                         </p>
                         <p className="truncate text-sm text-slate-700">
-                          {polotskHome ? "vs " : "@ "}
-                          {opp?.name ?? "—"}
+                          {m.home?.name ?? "?"} — {m.away?.name ?? "?"}
                         </p>
                       </div>
-                      <span className="font-display text-2xl tabular-nums text-slate-700">
+                      <span className="font-display text-xl tabular-nums text-slate-700 shrink-0">
                         {m.hs}:{m.as}
                       </span>
                     </li>
@@ -251,8 +273,8 @@ export async function MatchCenter() {
               </p>
               <ul className="space-y-1">
                 {(standingsRows.length > 0
-                  ? standingsRows.slice(0, 5)
-                  : Array.from({ length: 5 }, (_, i) => null)
+                  ? standingsRows
+                  : (Array.from({ length: 5 }, () => null) as null[])
                 ).map((row, i) => {
                   if (!row) {
                     return (
@@ -263,7 +285,9 @@ export async function MatchCenter() {
                         <span className="col-span-1 font-display tabular-nums text-white/80">
                           {i + 1}
                         </span>
-                        <span className="col-span-7 truncate">Команда {i + 1}</span>
+                        <span className="col-span-7 truncate">
+                          Команда {i + 1}
+                        </span>
                         <span className="col-span-2 text-right text-white/60">—</span>
                         <span className="col-span-2 text-right font-display tabular-nums">
                           —
@@ -273,15 +297,24 @@ export async function MatchCenter() {
                   }
                   return (
                     <li
-                      key={`s-${row.pos}`}
-                      className={`grid grid-cols-12 items-center gap-3 rounded-lg px-3 py-2 text-sm ${
+                      key={`s-${row.pos}-${row.team?.name ?? "x"}`}
+                      className={`grid grid-cols-12 items-center gap-2 rounded-lg px-3 py-2 text-sm ${
                         row.team?.isOwn ? "bg-polotsk-500" : ""
                       }`}
                     >
                       <span className="col-span-1 font-display tabular-nums text-white/80">
                         {row.pos}
                       </span>
-                      <span className="col-span-7 truncate">
+                      <span className="col-span-2 flex items-center justify-center">
+                        {row.team?.logo ? (
+                          <img
+                            src={row.team.logo}
+                            alt=""
+                            className="h-5 w-5 object-contain"
+                          />
+                        ) : null}
+                      </span>
+                      <span className="col-span-5 truncate">
                         {row.team?.name ?? "—"}
                       </span>
                       <span className="col-span-2 text-right text-white/60">

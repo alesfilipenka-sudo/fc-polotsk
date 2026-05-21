@@ -5,6 +5,7 @@ import { RESULTS_QUERY } from "@/lib/queries";
 interface TeamRef {
   name?: string;
   short?: string;
+  logo?: string;
   isOwn?: boolean;
 }
 interface MatchDoc {
@@ -36,7 +37,6 @@ function resultMark(m: MatchDoc): "W" | "L" | "D" | null {
 export async function Results() {
   const matches = (await sanityFetch<MatchDoc[]>(RESULTS_QUERY)) ?? [];
 
-  // Compute stats
   const stats = matches.reduce(
     (acc, m) => {
       const r = resultMark(m);
@@ -87,8 +87,8 @@ export async function Results() {
           <div className="hidden grid-cols-12 gap-4 border-b border-white/10 px-6 py-4 text-[10px] uppercase tracking-eyebrow text-white/40 md:grid">
             <span className="col-span-2">Дата</span>
             <span className="col-span-3">Турнир</span>
-            <span className="col-span-4">Матч</span>
-            <span className="col-span-2">Счёт</span>
+            <span className="col-span-5">Матч</span>
+            <span className="col-span-1 text-center">Счёт</span>
             <span className="col-span-1 text-right">Итог</span>
           </div>
           <ul className="divide-y divide-white/10">
@@ -97,96 +97,82 @@ export async function Results() {
                 return (
                   <li
                     key={`ph-${i}`}
-                    className="grid grid-cols-12 items-center gap-4 px-6 py-4 text-sm"
+                    className="px-5 py-4 md:px-6"
                   >
-                    <span className="col-span-12 text-white/60 md:col-span-2">
-                      — апр
-                    </span>
-                    <span className="col-span-6 text-white/70 md:col-span-3">
-                      Высшая лига
-                    </span>
-                    <span className="col-span-6 truncate md:col-span-4">
-                      Полоцк vs соперник
-                    </span>
-                    <span className="col-span-6 font-display text-2xl tabular-nums text-white md:col-span-2">
-                      —:—
-                    </span>
-                    <span className="col-span-6 flex justify-end md:col-span-1">
-                      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/15 text-xs font-semibold text-white/60">
-                        —
+                    <div className="md:grid md:grid-cols-12 md:items-center md:gap-4 text-sm">
+                      <p className="text-white/60 md:col-span-2">— апр</p>
+                      <p className="text-white/70 md:col-span-3">Высшая лига</p>
+                      <p className="text-white/80 md:col-span-5 mt-1 md:mt-0">
+                        Полоцк — соперник
+                      </p>
+                      <p className="font-display text-2xl tabular-nums text-white md:col-span-1 md:text-center mt-1 md:mt-0">
+                        —:—
+                      </p>
+                      <span className="md:col-span-1 md:flex md:justify-end mt-2 md:mt-0">
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/15 text-xs font-semibold text-white/60">
+                          —
+                        </span>
                       </span>
-                    </span>
+                    </div>
                   </li>
                 );
               }
               const r = resultMark(m);
-              const polotskHome = m.home?.isOwn;
-              const opp = polotskHome ? m.away : m.home;
               const badge =
                 r === "W" ? "bg-polotsk-500 text-white"
                 : r === "L" ? "bg-red-400 text-white"
                 : r === "D" ? "bg-slate-500 text-white"
                 : "border border-white/15 text-white/60";
-              const letter = r === "W" ? "П" : r === "L" ? "П" : r === "D" ? "Н" : "—";
+              const letter =
+                r === "W" ? "В" : r === "L" ? "П" : r === "D" ? "Н" : "—";
               return (
                 <li
                   key={m._id}
-                  className="grid grid-cols-12 items-center gap-4 px-6 py-4 text-sm"
+                  className="px-5 py-4 md:px-6"
                 >
-                  <span className="col-span-12 text-white/60 md:col-span-2">
-                    {new Date(m.date).toLocaleDateString("ru-RU", {
-                      day: "2-digit",
-                      month: "short",
-                    })}
-                  </span>
-                  <span className="col-span-6 text-white/70 md:col-span-3">
-                    {m.competition ?? "Высшая лига"}
-                  </span>
-                  <span className="col-span-6 truncate md:col-span-4">
-                    {polotskHome ? "Полоцк" : opp?.name ?? "?"} —{" "}
-                    {polotskHome ? opp?.name ?? "?" : "Полоцк"}
-                  </span>
-                  <span className="col-span-6 font-display text-2xl tabular-nums text-white md:col-span-2">
-                    {m.hs}:{m.as}
-                  </span>
-                  <span className="col-span-6 flex justify-end md:col-span-1">
-                    <span
-                      className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${badge}`}
-                    >
-                      {letter}
+                  <div className="md:grid md:grid-cols-12 md:items-center md:gap-4 text-sm">
+                    <p className="text-white/60 md:col-span-2">
+                      {new Date(m.date).toLocaleDateString("ru-RU", {
+                        day: "2-digit",
+                        month: "short",
+                      })}
+                    </p>
+                    <p className="text-white/70 md:col-span-3 truncate mt-0.5 md:mt-0">
+                      {m.competition ?? "Высшая лига"}
+                    </p>
+                    <p className="text-white md:col-span-5 truncate mt-1 md:mt-0">
+                      {m.home?.name ?? "?"} — {m.away?.name ?? "?"}
+                    </p>
+                    <p className="font-display text-xl tabular-nums text-white md:col-span-1 md:text-center mt-1 md:mt-0">
+                      {m.hs}:{m.as}
+                    </p>
+                    <span className="md:col-span-1 md:flex md:justify-end mt-2 md:mt-0 inline-flex">
+                      <span
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${badge}`}
+                      >
+                        {letter}
+                      </span>
                     </span>
-                  </span>
+                  </div>
                 </li>
               );
             })}
           </ul>
         </div>
 
-        <div className="mt-10 grid gap-px overflow-hidden rounded-2xl bg-white/10 md:grid-cols-4">
+        <div className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-white/10 md:grid-cols-4">
           {[
-            {
-              value: hasMatches ? stats.points : "—",
-              label: "Очки",
-              sub: "за сезон",
-            },
+            { value: hasMatches ? stats.points : "—", label: "Очки", sub: "за сезон" },
             {
               value: hasMatches ? `${stats.wins}` : "—",
               label: "Победы",
               sub: hasMatches ? `из ${matches.length} матчей` : "из — матчей",
             },
-            {
-              value: hasMatches ? stats.goalsFor : "—",
-              label: "Голы",
-              sub: "забито",
-            },
-            {
-              value: hasMatches ? stats.goalsAgainst : "—",
-              label: "Голы",
-              sub: "пропущено",
-            },
+            { value: hasMatches ? stats.goalsFor : "—", label: "Голы", sub: "забито" },
+            { value: hasMatches ? stats.goalsAgainst : "—", label: "Голы", sub: "пропущено" },
           ].map((s) => (
-            <div key={s.label + s.sub} className="bg-ink p-6 text-center">
-              <p className="font-display text-5xl tabular-nums text-polotsk-300 md:text-6xl">
+            <div key={s.label + s.sub} className="bg-ink p-5 text-center md:p-6">
+              <p className="font-display text-4xl tabular-nums text-polotsk-300 md:text-6xl">
                 {s.value}
               </p>
               <p className="mt-2 text-xs font-semibold uppercase tracking-eyebrow text-white">
