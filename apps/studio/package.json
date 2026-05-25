@@ -11,7 +11,8 @@
     "manage": "sanity manage",
     "lint": "echo 'studio: no lint configured' && exit 0",
     "typecheck": "tsc --noEmit",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "backfill:finishedAt": "tsx scripts/backfill-finished-at.ts"
   },
   "dependencies": {
     "@sanity/icons": "^3.5.0",

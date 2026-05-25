@@ -1,13 +1,15 @@
 import { Calendar, Clock, MapPin, ArrowRight, CalendarPlus } from "lucide-react";
 import { SectionHeader } from "../SectionHeader";
-import { LogoLight, LogoDecor } from "../Logo";
+import { LogoDecor } from "../Logo";
 import { sanityFetch } from "@/lib/sanity";
 import {
   SITE_SETTINGS_QUERY,
   RECENT_MATCHES_QUERY,
   STANDINGS_QUERY,
+  LAST_FINISHED_MATCH_QUERY,
 } from "@/lib/queries";
 import { formatMatchDate, formatMatchTime, formatShortDate } from "@/lib/dateFormat";
+import { getPolotskResult } from "@/lib/matchWindow";
 
 interface TeamRef {
   name?: string;
@@ -31,6 +33,24 @@ interface RecentMatch {
   as?: number;
   home?: TeamRef;
   away?: TeamRef;
+}
+interface Scorer {
+  minute?: number;
+  forTeam?: "home" | "away";
+  ownGoal?: boolean;
+  name?: string;
+}
+interface FinishedMatch {
+  _id: string;
+  date?: string;
+  competition?: string;
+  tour?: number;
+  finishedAt?: string;
+  hs?: number;
+  as?: number;
+  home?: TeamRef;
+  away?: TeamRef;
+  scorers?: Scorer[];
 }
 interface StandingsRow {
   pos: number;
@@ -85,16 +105,100 @@ function TeamLogo({ team, size = 56 }: { team?: TeamRef; size?: number }) {
   );
 }
 
+function TeamRow({ team }: { team?: TeamRef }) {
+  const name = team?.name ?? "—";
+  return (
+    <div className="flex items-center gap-2 min-w-0">
+      {team?.logo ? (
+        <img src={team.logo} alt={name} className="h-8 w-8 object-contain" />
+      ) : team?.isOwn ? (
+        <img src="/logo.png" alt="ФК Полоцк" className="h-8 w-8 object-contain" />
+      ) : (
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 font-display text-xs text-slate-500">
+          {team?.short ?? "?"}
+        </span>
+      )}
+      <span
+        className={`font-display text-sm md:text-base truncate ${
+          team?.isOwn ? "text-polotsk-700 font-bold" : "text-slate-600"
+        }`}
+      >
+        {name}
+      </span>
+    </div>
+  );
+}
+
+function PostMatchCard({ match }: { match: FinishedMatch }) {
+  const r = getPolotskResult(match);
+  const accentColor =
+    r === "W" ? "#234794" : r === "L" ? "#ef4444" : "#64748b";
+  const label = r === "W" ? "Победа" : r === "L" ? "Поражение" : "Ничья";
+  const when = match.finishedAt ?? match.date;
+  const scorers = match.scorers ?? [];
+
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 md:p-7">
+      <span
+        className="absolute left-0 top-6 bottom-6 w-1 rounded-full"
+        style={{ background: accentColor }}
+        aria-hidden
+      />
+
+      <div className="flex items-center justify-between gap-3 pl-3">
+        <span className="text-[10px] uppercase tracking-eyebrow text-slate-400">
+          Сыгран · {when ? formatShortDate(when) : ""}
+          {match.competition ? ` · ${match.competition}` : ""}
+        </span>
+        <span
+          className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
+          style={{ background: accentColor }}
+        >
+          {label}
+        </span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4 pl-3">
+        <TeamRow team={match.home} />
+        <div className="flex items-center gap-2 shrink-0 font-display text-[2rem] md:text-[2.4rem] leading-none tabular-nums text-ink">
+          <span>{match.hs ?? "—"}</span>
+          <span className="text-slate-300 text-xl">:</span>
+          <span>{match.as ?? "—"}</span>
+        </div>
+        <div className="flex justify-end">
+          <TeamRow team={match.away} />
+        </div>
+      </div>
+
+      {scorers.length > 0 && (
+        <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 pl-3 text-xs text-slate-500">
+          <span aria-hidden>⚽</span>
+          {scorers.map((s, i) => (
+            <span key={i}>
+              <span className="font-medium text-slate-700">{s.name ?? "?"}</span>
+              {s.minute != null ? ` ${s.minute}'` : ""}
+              {s.ownGoal ? " (а/г)" : ""}
+              {i < scorers.length - 1 ? "," : ""}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export async function MatchCenter() {
-  const [settings, recent, standings] = await Promise.all([
+  const [settings, recent, standings, lastMatch] = await Promise.all([
     sanityFetch<{ nextMatch?: NextMatch | null }>(SITE_SETTINGS_QUERY),
     sanityFetch<RecentMatch[]>(RECENT_MATCHES_QUERY),
     sanityFetch<Standings | null>(STANDINGS_QUERY),
+    sanityFetch<FinishedMatch | null>(LAST_FINISHED_MATCH_QUERY),
   ]);
 
   const next = settings?.nextMatch;
   const recentList = recent ?? [];
   const standingsRows = standings?.rows ?? [];
+  const showPostMatch = !!lastMatch;
 
   return (
     <section id="matches" className="bg-white py-14 md:py-20">
@@ -109,8 +213,11 @@ export async function MatchCenter() {
         />
 
         <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
+          {/* Left column: post-match card + next match card */}
+          <div className="space-y-6 lg:col-span-7">
+            {showPostMatch && lastMatch && <PostMatchCard match={lastMatch} />}
           {/* Next match card */}
-          <div className="relative overflow-hidden rounded-3xl bg-polotsk-500 p-6 text-white md:p-10 lg:col-span-7">
+          <div className="relative overflow-hidden rounded-3xl bg-polotsk-500 p-6 text-white md:p-10">
             <LogoDecor
               size={300}
               opacity={0.08}
@@ -193,6 +300,7 @@ export async function MatchCenter() {
                 </button>
               </div>
             </div>
+          </div>
           </div>
 
           {/* Right column */}

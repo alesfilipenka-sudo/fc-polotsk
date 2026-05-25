@@ -74,6 +74,79 @@ export const match = defineType({
       validation: (r) => r.integer().min(0),
       hidden: ({ document }) => document?.status === "scheduled",
     }),
+    defineField({
+      name: "finishedAt",
+      title: "Финальный свисток",
+      description:
+        "Заполняется при переводе матча в статус «Завершён». Используется для расчёта 48-часового окна показа результата на главной.",
+      type: "datetime",
+      hidden: ({ document }) => document?.status !== "finished",
+    }),
+    defineField({
+      name: "scorers",
+      title: "Авторы голов",
+      description:
+        "Хронологический список голов. Минута + автор. Отметь «автогол» если мяч забит в свои ворота.",
+      type: "array",
+      hidden: ({ document }) => document?.status === "scheduled",
+      of: [
+        {
+          type: "object",
+          name: "goal",
+          title: "Гол",
+          fields: [
+            defineField({
+              name: "minute",
+              title: "Минута",
+              type: "number",
+              validation: (r) => r.required().integer().min(1).max(130),
+            }),
+            defineField({
+              name: "player",
+              title: "Игрок",
+              type: "reference",
+              to: [{ type: "player" }],
+              validation: (r) => r.required(),
+            }),
+            defineField({
+              name: "forTeam",
+              title: "За команду",
+              type: "string",
+              options: {
+                list: [
+                  { title: "Хозяева", value: "home" },
+                  { title: "Гости", value: "away" },
+                ],
+                layout: "radio",
+              },
+              validation: (r) => r.required(),
+            }),
+            defineField({
+              name: "ownGoal",
+              title: "Автогол",
+              type: "boolean",
+              initialValue: false,
+            }),
+          ],
+          preview: {
+            select: {
+              minute: "minute",
+              playerName: "player.name",
+              own: "ownGoal",
+              forTeam: "forTeam",
+            },
+            prepare({ minute, playerName, own, forTeam }) {
+              const og = own ? " (автогол)" : "";
+              const side = forTeam === "home" ? "🏠" : "✈️";
+              return {
+                title: `${minute}' — ${playerName ?? "?"}${og}`,
+                subtitle: side,
+              };
+            },
+          },
+        },
+      ],
+    }),
   ],
   preview: {
     select: {
