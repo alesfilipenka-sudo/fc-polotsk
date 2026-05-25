@@ -34,6 +34,73 @@ export const NEWS_QUERY = `*[_type == "news"] | order(date desc)[0...6]{
   "imageUrl": coverImage.asset->url
 }`;
 
+/**
+ * Все новости — для индексной страницы /news.
+ * Не лимитируем, страница сама рисует пагинацию (или просто scroll).
+ */
+export const ALL_NEWS_QUERY = `*[_type == "news"] | order(date desc){
+  _id,
+  title,
+  "slug": slug.current,
+  date,
+  tag,
+  excerpt,
+  placeholderClass,
+  "imageUrl": coverImage.asset->url
+}`;
+
+/**
+ * Полная статья по slug. Для /news/[slug].
+ * body[] разворачивает asset для imageBlock (фото внутри текста).
+ */
+export const ARTICLE_QUERY = `*[_type == "news" && slug.current == $slug][0]{
+  _id,
+  title,
+  subtitle,
+  tag,
+  "slug": slug.current,
+  date,
+  readTime,
+  body[]{
+    ...,
+    _type == "imageBlock" => {
+      ...,
+      "url": asset->url,
+      "dimensions": asset->metadata.dimensions
+    }
+  }
+}`;
+
+/**
+ * Slugs всех новостей — для generateStaticParams.
+ */
+export const ALL_NEWS_SLUGS_QUERY = `*[_type == "news" && defined(slug.current)]{
+  "slug": slug.current
+}`;
+
+/**
+ * 3 связанные статьи (исключая текущую). Берём свежие.
+ */
+export const RELATED_NEWS_QUERY = `*[_type == "news" && slug.current != $slug] | order(date desc)[0...3]{
+  _id,
+  title,
+  "slug": slug.current,
+  date,
+  tag,
+  excerpt,
+  placeholderClass,
+  "imageUrl": coverImage.asset->url
+}`;
+
+/**
+ * 4 свежих новости для sticky-sidebar статьи.
+ */
+export const SIDEBAR_NEWS_QUERY = `*[_type == "news" && slug.current != $slug] | order(date desc)[0...4]{
+  title,
+  "slug": slug.current,
+  date
+}`;
+
 export const RECENT_MATCHES_QUERY = `*[_type == "match" && status == "finished"] | order(date desc)[0...4]{
   _id,
   date,

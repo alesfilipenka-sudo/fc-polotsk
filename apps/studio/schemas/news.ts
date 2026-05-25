@@ -10,6 +10,18 @@ const PLACEHOLDER_CLASSES = [
   { title: "Градиент 6 (мягкий синий)", value: "ph-news-6" },
 ];
 
+const TAGS = [
+  "Трансфер",
+  "Матч",
+  "Клуб",
+  "Интервью",
+  "Болельщикам",
+  "Академия",
+  "Анонс",
+  "Тренировка",
+  "Партнёры",
+];
+
 export const news = defineType({
   name: "news",
   title: "News",
@@ -39,24 +51,40 @@ export const news = defineType({
     defineField({
       name: "tag",
       title: "Тег",
-      description: "Короткая категория (Матч, Анонс, Интервью, …).",
+      description: "Категория. Выбирай из списка либо пиши свою.",
       type: "string",
+      options: { list: TAGS },
       validation: (r) => r.required().max(40),
     }),
     defineField({
       name: "excerpt",
-      title: "Краткое описание",
-      description: "2–3 строки, виден в карточке на главной.",
+      title: "Краткое описание (карточка)",
+      description: "2–3 строки, виден в карточке на главной и в RelatedNews.",
       type: "text",
       rows: 3,
       validation: (r) => r.required().max(280),
+    }),
+    defineField({
+      name: "subtitle",
+      title: "Лид (на странице статьи)",
+      description: "Подзаголовок над основным текстом. Можно оставить пустым — тогда страница начнётся сразу с body.",
+      type: "text",
+      rows: 2,
+      validation: (r) => r.max(400),
+    }),
+    defineField({
+      name: "readTime",
+      title: "Время чтения (мин)",
+      description: "Опционально. Если не задано — на странице не показываем.",
+      type: "number",
+      validation: (r) => r.integer().min(1).max(60),
     }),
     defineField({
       name: "coverImage",
       title: "Обложка",
       type: "image",
       options: { hotspot: true },
-      description: "16:9 или 4:3. Если пусто — берём градиент-плейсхолдер.",
+      description: "16:9 или 4:3. Если пусто — берём градиент-плейсхолдер. На странице статьи hero убран (по дизайну), обложка только в карточках.",
     }),
     defineField({
       name: "placeholderClass",
@@ -68,7 +96,7 @@ export const news = defineType({
     }),
     defineField({
       name: "body",
-      title: "Текст",
+      title: "Текст статьи",
       type: "array",
       of: [
         {
@@ -101,7 +129,25 @@ export const news = defineType({
             ],
           },
         },
-        { type: "image", options: { hotspot: true } },
+        {
+          // Изображение внутри статьи. Поле caption — для подписи под фото.
+          type: "image",
+          name: "imageBlock",
+          title: "Фото внутри текста",
+          options: { hotspot: true },
+          fields: [
+            {
+              name: "caption",
+              title: "Подпись",
+              type: "string",
+            },
+            {
+              name: "alt",
+              title: "Alt (для SEO/доступности)",
+              type: "string",
+            },
+          ],
+        },
       ],
     }),
   ],

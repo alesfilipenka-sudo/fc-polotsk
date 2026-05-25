@@ -90,6 +90,67 @@
   .ph-news-4 { background: linear-gradient(135deg, #234794, #11244e); }
   .ph-news-5 { background: linear-gradient(135deg, #11244e, #7e96d8); }
   .ph-news-6 { background: linear-gradient(135deg, #5273c2, #173066); }
+
+  /* === Article (Portable Text) typography ===========================
+     Применяется к телу новости /news/[slug].
+     Не используем @apply ради переносимости — стандартные CSS правила. */
+  .prose-article p {
+    margin-bottom: 1.6em;
+    line-height: 1.8;
+    color: #1e293b;
+    font-size: 1.0625rem;
+  }
+  .prose-article h2 {
+    font-family: "Oswald", sans-serif;
+    font-size: 1.75rem;
+    color: #234794;
+    margin: 2.2em 0 0.8em;
+    line-height: 1.1;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .prose-article h3 {
+    font-family: "Oswald", sans-serif;
+    font-size: 1.35rem;
+    color: #234794;
+    margin: 1.8em 0 0.6em;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+  }
+  .prose-article blockquote {
+    border-left: 3px solid #234794;
+    padding-left: 1.4rem;
+    margin: 2em 0;
+    color: #334155;
+    font-size: 1.15rem;
+    font-style: italic;
+    line-height: 1.7;
+  }
+  .prose-article strong { color: #0a0e1a; font-weight: 700; }
+  .prose-article a { color: #234794; text-decoration: underline; text-underline-offset: 3px; }
+  .prose-article a:hover { color: #11244e; }
+  .prose-article ul,
+  .prose-article ol { margin: 0 0 1.6em 1.2em; line-height: 1.7; color: #1e293b; }
+  .prose-article li { margin-bottom: 0.4em; }
+
+  /* === Share button ================================================ */
+  .share-btn {
+    display: inline-flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    background: white;
+    transition: color .15s ease, border-color .15s ease, background-color .15s ease;
+  }
+  .share-btn:hover {
+    color: #234794;
+    border-color: #234794;
+    background: #eef2fb;
+  }
 }
 
 @layer utilities {
