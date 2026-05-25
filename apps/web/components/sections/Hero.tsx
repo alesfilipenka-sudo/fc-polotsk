@@ -128,16 +128,30 @@ function PostMatchStrip({ match }: { match: FinishedMatch }) {
         </div>
       </div>
       {scorers.length > 0 && (
-        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 pl-3 text-[11px] text-white/70">
-          <span aria-hidden>⚽</span>
-          {scorers.map((s, i) => (
-            <span key={i}>
-              {s.name ?? "?"}
-              {s.minute != null ? ` ${s.minute}'` : ""}
-              {s.ownGoal ? " (а/г)" : ""}
-              {i < scorers.length - 1 ? "," : ""}
-            </span>
-          ))}
+        <div className="mt-3 grid grid-cols-[1fr_auto_1fr] gap-3 pl-3 text-[11px] text-white/70">
+          <div className="flex flex-col gap-0.5">
+            {scorers
+              .filter((s) => s.forTeam === "home")
+              .map((s, i) => (
+                <div key={`h-${i}`}>
+                  <span aria-hidden>⚽</span> {s.name ?? "?"}
+                  {s.minute != null ? ` ${s.minute}'` : ""}
+                  {s.ownGoal ? " (а/г)" : ""}
+                </div>
+              ))}
+          </div>
+          <div />
+          <div className="flex flex-col gap-0.5 text-right">
+            {scorers
+              .filter((s) => s.forTeam === "away")
+              .map((s, i) => (
+                <div key={`a-${i}`}>
+                  {s.minute != null ? `${s.minute}' ` : ""}
+                  {s.name ?? "?"}
+                  {s.ownGoal ? " (а/г)" : ""} <span aria-hidden>⚽</span>
+                </div>
+              ))}
+          </div>
         </div>
       )}
     </div>
@@ -232,20 +246,4 @@ export async function Hero() {
                   <Countdown targetIso={next?.date} />
                 </div>
                 <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-xs text-white/70">
-                  <span>{next?.date ? formatMatchDate(next.date) : "Дата уточняется"}</span>
-                  <span>{next?.date ? formatMatchTime(next.date) : "—:—"}</span>
-                </div>
-              </div>
-            )}
-
-            {!showPostMatch && !showNext && (
-              <div className="rounded-2xl border border-white/15 bg-white/[0.07] p-5 text-center text-sm text-white/60 backdrop-blur-md md:p-7">
-                Расписание уточняется
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+                  <span>{next?.date ? formatMatchDate(next.d

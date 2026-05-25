@@ -151,16 +151,32 @@ function PostMatchCard({ match }: { match: FinishedMatch }) {
       </div>
 
       {scorers.length > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 pl-3 text-xs text-slate-500">
-          <span aria-hidden>⚽</span>
-          {scorers.map((s, i) => (
-            <span key={i}>
-              <span className="font-medium text-slate-700">{s.name ?? "?"}</span>
-              {s.minute != null ? ` ${s.minute}'` : ""}
-              {s.ownGoal ? " (а/г)" : ""}
-              {i < scorers.length - 1 ? "," : ""}
-            </span>
-          ))}
+        <div className="mt-4 grid grid-cols-[1fr_auto_1fr] gap-4 pl-3 text-xs text-slate-500">
+          <div className="flex flex-col gap-1">
+            {scorers
+              .filter((s) => s.forTeam === "home")
+              .map((s, i) => (
+                <div key={`h-${i}`}>
+                  <span aria-hidden>⚽</span>{" "}
+                  <span className="font-medium text-slate-700">{s.name ?? "?"}</span>
+                  {s.minute != null ? ` ${s.minute}'` : ""}
+                  {s.ownGoal ? " (а/г)" : ""}
+                </div>
+              ))}
+          </div>
+          <div />
+          <div className="flex flex-col gap-1 text-right">
+            {scorers
+              .filter((s) => s.forTeam === "away")
+              .map((s, i) => (
+                <div key={`a-${i}`}>
+                  {s.minute != null ? `${s.minute}' ` : ""}
+                  <span className="font-medium text-slate-700">{s.name ?? "?"}</span>
+                  {s.ownGoal ? " (а/г)" : ""}{" "}
+                  <span aria-hidden>⚽</span>
+                </div>
+              ))}
+          </div>
         </div>
       )}
     </div>
@@ -347,20 +363,4 @@ export async function MatchCenter() {
                       className={`grid grid-cols-12 items-center gap-2 rounded-lg px-3 py-2 text-sm ${row.team?.isOwn ? "bg-polotsk-500" : ""}`}
                     >
                       <span className="col-span-1 font-display tabular-nums text-white/80">{row.pos}</span>
-                      <span className="col-span-2 flex items-center justify-center">
-                        {row.team?.logo ? <img src={row.team.logo} alt="" className="h-5 w-5 object-contain" /> : null}
-                      </span>
-                      <span className="col-span-5 truncate">{row.team?.name ?? "—"}</span>
-                      <span className="col-span-2 text-right text-white/60">{row.mp}</span>
-                      <span className="col-span-2 text-right font-display tabular-nums">{row.pts}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+                      <span className="col-span-2 flex items
