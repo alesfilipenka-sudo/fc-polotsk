@@ -2,7 +2,11 @@ import { ArrowRight, MapPin } from "lucide-react";
 import { LogoDecor } from "../Logo";
 import { SITE } from "@/lib/constants";
 import { sanityFetch } from "@/lib/sanity";
-import { SITE_SETTINGS_QUERY, LAST_FINISHED_MATCH_QUERY } from "@/lib/queries";
+import {
+  SITE_SETTINGS_QUERY,
+  LAST_FINISHED_MATCH_QUERY,
+  NEXT_MATCH_QUERY,
+} from "@/lib/queries";
 import { formatMatchDate, formatMatchTime, formatShortDate } from "@/lib/dateFormat";
 import { getMatchDisplayMode, getPolotskResult } from "@/lib/matchWindow";
 
@@ -39,13 +43,16 @@ interface SiteSettings {
   heroLine2?: string;
   heroSubtitle?: string;
   city?: string;
-  nextMatch?: {
-    tour?: number;
-    competition?: string;
-    home?: TeamRef;
-    away?: TeamRef;
-    date?: string;
-  } | null;
+}
+
+interface NextMatch {
+  _id?: string;
+  date?: string;
+  competition?: string;
+  tour?: number;
+  venue?: string;
+  home?: TeamRef;
+  away?: TeamRef;
 }
 
 function TeamMini({ team, side }: { team?: TeamRef; side: "home" | "away" }) {
@@ -61,11 +68,7 @@ function TeamMini({ team, side }: { team?: TeamRef; side: "home" | "away" }) {
           {team?.short ?? "?"}
         </span>
       )}
-      <span
-        className={`font-display text-sm truncate ${
-          team?.isOwn ? "text-white" : "text-white/70"
-        }`}
-      >
+      <span className={`font-display text-sm truncate ${team?.isOwn ? "text-white" : "text-white/70"}`}>
         {name}
       </span>
     </div>
@@ -87,48 +90,31 @@ function TeamSide({ team, side }: { team?: TeamRef; side: "home" | "away" }) {
         </span>
       )}
       <p className="font-display text-sm truncate max-w-full">{name}</p>
-      <p className="text-[10px] uppercase tracking-eyebrow text-white/60">
-        {label}
-      </p>
+      <p className="text-[10px] uppercase tracking-eyebrow text-white/60">{label}</p>
     </div>
   );
 }
 
 function PostMatchStrip({ match }: { match: FinishedMatch }) {
   const r = getPolotskResult(match);
-  const accent =
-    r === "W"
-      ? "bg-polotsk-300"
-      : r === "L"
-      ? "bg-red-400"
-      : "bg-slate-300";
+  const accent = r === "W" ? "bg-polotsk-300" : r === "L" ? "bg-red-400" : "bg-slate-300";
   const badgeStyles =
-    r === "W"
-      ? "bg-polotsk-300 text-polotsk-900"
-      : r === "L"
-      ? "bg-red-400 text-white"
-      : "bg-slate-300 text-ink";
+    r === "W" ? "bg-polotsk-300 text-polotsk-900" : r === "L" ? "bg-red-400 text-white" : "bg-slate-300 text-ink";
   const label = r === "W" ? "Победа" : r === "L" ? "Поражение" : "Ничья";
   const when = match.finishedAt ?? match.date;
   const scorers = match.scorers ?? [];
 
   return (
     <div className="relative mb-4 overflow-hidden rounded-2xl border border-white/15 bg-white/[0.07] p-4 backdrop-blur-md md:p-5">
-      <span
-        className={`absolute left-0 top-4 bottom-4 w-1 rounded-full ${accent}`}
-        aria-hidden
-      />
+      <span className={`absolute left-0 top-4 bottom-4 w-1 rounded-full ${accent}`} aria-hidden />
       <div className="flex items-center justify-between gap-3 pl-3">
         <span className="text-[10px] uppercase tracking-eyebrow text-white/60">
           Сыгран · {when ? formatShortDate(when) : ""}
         </span>
-        <span
-          className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeStyles}`}
-        >
+        <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeStyles}`}>
           {label}
         </span>
       </div>
-
       <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3 pl-3">
         <TeamMini team={match.home} side="home" />
         <div className="flex items-center gap-1.5 shrink-0 font-display text-2xl tabular-nums">
@@ -140,7 +126,6 @@ function PostMatchStrip({ match }: { match: FinishedMatch }) {
           <TeamMini team={match.away} side="away" />
         </div>
       </div>
-
       {scorers.length > 0 && (
         <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 pl-3 text-[11px] text-white/70">
           <span aria-hidden>⚽</span>
@@ -159,9 +144,10 @@ function PostMatchStrip({ match }: { match: FinishedMatch }) {
 }
 
 export async function Hero() {
-  const [settings, lastMatch] = await Promise.all([
+  const [settings, lastMatch, nextMatch] = await Promise.all([
     sanityFetch<SiteSettings | null>(SITE_SETTINGS_QUERY),
     sanityFetch<FinishedMatch | null>(LAST_FINISHED_MATCH_QUERY),
+    sanityFetch<NextMatch | null>(NEXT_MATCH_QUERY),
   ]);
 
   const badge = settings?.heroBadge ?? `Сезон ${SITE.season} · ${SITE.league}`;
@@ -171,18 +157,15 @@ export async function Hero() {
     settings?.heroSubtitle ??
     "ФК Полоцк — клуб с историей и амбициями. Следи за командой, ближайшими матчами и новостями клуба.";
   const city = settings?.city ?? SITE.city;
-  const next = settings?.nextMatch;
+  const next = nextMatch ?? null;
 
-  const mode = getMatchDisplayMode(next ?? null, lastMatch);
+  const mode = getMatchDisplayMode(next, lastMatch);
   const showPostMatch = mode === "post_match" || mode === "post_match_no_next";
   const showNext = mode === "scheduled" || mode === "post_match";
 
   return (
     <section id="top" className="stadium-bg relative overflow-hidden text-white">
-      <div
-        className="grain pointer-events-none absolute inset-0 opacity-40 mix-blend-overlay"
-        aria-hidden
-      />
+      <div className="grain pointer-events-none absolute inset-0 opacity-40 mix-blend-overlay" aria-hidden />
       <LogoDecor
         size={420}
         opacity={0.08}
@@ -211,9 +194,7 @@ export async function Hero() {
               <span className="text-polotsk-300">{line2}</span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-base text-white/70 text-balance">
-              {subtitle}
-            </p>
+            <p className="mt-6 max-w-xl text-base text-white/70 text-balance">{subtitle}</p>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <a
@@ -232,7 +213,6 @@ export async function Hero() {
             </div>
           </div>
 
-          {/* Right column: post-match strip + next-match glass card */}
           <div className="md:col-span-5">
             {showPostMatch && lastMatch && <PostMatchStrip match={lastMatch} />}
 
@@ -240,39 +220,28 @@ export async function Hero() {
               <div className="rounded-2xl border border-white/15 bg-white/[0.07] p-5 backdrop-blur-md md:p-7">
                 <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-eyebrow text-white/60">
                   <span>Следующий матч</span>
-                  <span className="truncate">
-                    {next?.tour ? `Тур ${next.tour}` : ""}
-                  </span>
+                  <span className="truncate">{next?.tour ? `Тур ${next.tour}` : ""}</span>
                 </div>
                 <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-4">
                   <TeamSide team={next?.home} side="home" />
-                  <div className="font-display text-2xl tabular-nums text-polotsk-300">
-                    VS
-                  </div>
+                  <div className="font-display text-2xl tabular-nums text-polotsk-300">VS</div>
                   <TeamSide team={next?.away} side="away" />
                 </div>
                 <div className="mt-5 grid grid-cols-4 gap-2 border-t border-white/10 pt-5 text-center sm:gap-3">
                   {["Дней", "Часов", "Минут", "Секунд"].map((label) => (
                     <div key={label}>
-                      <p className="font-display text-2xl tabular-nums text-white sm:text-3xl">
-                        --
-                      </p>
-                      <p className="mt-1 text-[9px] uppercase tracking-eyebrow text-white/60 sm:text-[10px]">
-                        {label}
-                      </p>
+                      <p className="font-display text-2xl tabular-nums text-white sm:text-3xl">--</p>
+                      <p className="mt-1 text-[9px] uppercase tracking-eyebrow text-white/60 sm:text-[10px]">{label}</p>
                     </div>
                   ))}
                 </div>
                 <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-xs text-white/70">
-                  <span>
-                    {next?.date ? formatMatchDate(next.date) : "Дата уточняется"}
-                  </span>
+                  <span>{next?.date ? formatMatchDate(next.date) : "Дата уточняется"}</span>
                   <span>{next?.date ? formatMatchTime(next.date) : "—:—"}</span>
                 </div>
               </div>
             )}
 
-            {/* fallback: no next, no post-match — keep glass placeholder so column isn't empty */}
             {!showPostMatch && !showNext && (
               <div className="rounded-2xl border border-white/15 bg-white/[0.07] p-5 text-center text-sm text-white/60 backdrop-blur-md md:p-7">
                 Расписание уточняется
