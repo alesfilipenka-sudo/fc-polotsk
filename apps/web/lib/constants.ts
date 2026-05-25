@@ -10,13 +10,17 @@ export const SITE = {
   url: "https://fcpolotsk.by",
 } as const;
 
+// Абсолютные пути + якоря — чтобы навигация работала и с главной, и со
+// страницы /news/[slug] (где якорей на главной не существует).
+// «Новости» теперь ведёт на отдельную страницу /news, а не на якорь
+// #news главной (т.к. там лента короткая на 6 карточек).
 export const NAV: readonly NavItem[] = [
-  { href: "#top", label: "Главная" },
-  { href: "#matches", label: "Матчи" },
-  { href: "#news", label: "Новости" },
-  { href: "#team", label: "Команда" },
-  { href: "#social", label: "Соцсети" },
-  { href: "#results", label: "Результаты" },
+  { href: "/", label: "Главная" },
+  { href: "/#matches", label: "Матчи" },
+  { href: "/news", label: "Новости" },
+  { href: "/#team", label: "Команда" },
+  { href: "/#social", label: "Соцсети" },
+  { href: "/#results", label: "Результаты" },
 ] as const;
 
 export const POS_LABEL: Record<Position, string> = {

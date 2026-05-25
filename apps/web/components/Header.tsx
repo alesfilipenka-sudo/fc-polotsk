@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Instagram, Send, Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
 import { VKIcon } from "./icons/VKIcon";
@@ -15,6 +16,12 @@ const SOCIAL_ICONS = [
 ];
 
 export function Header() {
+  const pathname = usePathname();
+  // Прозрачный фон допустим только на главной — там под header лежит тёмный
+  // Hero. На остальных страницах под header — белый, без фона он выглядит
+  // пустым и нечитаемым.
+  const isHome = pathname === "/";
+
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -25,24 +32,27 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // На не-главных всегда рисуем solid вариант. На главной — переключаемся по scroll.
+  const solid = !isHome || scrolled;
+
   return (
     <header
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-colors duration-200",
-        scrolled
+        solid
           ? "border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md"
           : "bg-transparent",
       )}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-5 md:h-20 md:px-8">
         {/* Brand */}
-        <Link href="#top" className="flex items-center gap-3 min-w-0">
-          <Logo size={scrolled ? 30 : 36} priority />
+        <Link href="/" className="flex items-center gap-3 min-w-0">
+          <Logo size={solid ? 30 : 36} priority />
           <div className="min-w-0">
             <p
               className={cn(
                 "truncate font-display text-base leading-none md:text-lg",
-                scrolled ? "text-slate-900" : "text-white",
+                solid ? "text-slate-900" : "text-white",
               )}
             >
               {SITE.name}
@@ -50,7 +60,7 @@ export function Header() {
             <p
               className={cn(
                 "text-[10px] uppercase tracking-eyebrow",
-                scrolled ? "text-slate-500" : "text-white/60",
+                solid ? "text-slate-500" : "text-white/60",
               )}
             >
               EST. 2019
@@ -66,7 +76,7 @@ export function Header() {
               href={item.href}
               className={cn(
                 "underline-grow text-xs font-semibold uppercase tracking-wider",
-                scrolled ? "text-slate-700 hover:text-polotsk-500" : "text-white/85 hover:text-white",
+                solid ? "text-slate-700 hover:text-polotsk-500" : "text-white/85 hover:text-white",
               )}
             >
               {item.label}
@@ -86,7 +96,7 @@ export function Header() {
                 aria-label={label}
                 className={cn(
                   "inline-flex h-9 w-9 items-center justify-center rounded-full transition",
-                  scrolled
+                  solid
                     ? "text-slate-600 hover:bg-slate-100"
                     : "text-white/85 hover:bg-white/10",
                 )}
@@ -102,7 +112,7 @@ export function Header() {
             aria-label="Меню"
             className={cn(
               "inline-flex h-9 w-9 items-center justify-center rounded-full lg:hidden",
-              scrolled
+              solid
                 ? "text-slate-700 hover:bg-slate-100"
                 : "text-white hover:bg-white/10",
             )}

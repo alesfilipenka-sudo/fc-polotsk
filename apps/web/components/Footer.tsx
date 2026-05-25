@@ -10,8 +10,8 @@ const COLUMNS = [
   {
     title: "Клуб",
     links: [
-      { label: "Команда", href: "#team" },
-      { label: "Тренерский штаб", href: "#team" },
+      { label: "Команда", href: "/#team" },
+      { label: "Тренерский штаб", href: "/#team" },
       { label: "Академия", href: "#" },
       { label: "История", href: "#" },
     ],
@@ -19,9 +19,9 @@ const COLUMNS = [
   {
     title: "Матчи",
     links: [
-      { label: "Расписание", href: "#matches" },
-      { label: "Результаты", href: "#results" },
-      { label: "Турнирная таблица", href: "#matches" },
+      { label: "Расписание", href: "/#matches" },
+      { label: "Результаты", href: "/#results" },
+      { label: "Турнирная таблица", href: "/#matches" },
     ],
   },
 ];
