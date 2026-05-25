@@ -246,4 +246,20 @@ export async function Hero() {
                   <Countdown targetIso={next?.date} />
                 </div>
                 <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-xs text-white/70">
-                  <span>{next?.date ? formatMatchDate(next.d
+                  <span>{next?.date ? formatMatchDate(next.date) : "Дата уточняется"}</span>
+                  <span>{next?.date ? formatMatchTime(next.date) : "—:—"}</span>
+                </div>
+              </div>
+            )}
+
+            {!showPostMatch && !showNext && (
+              <div className="rounded-2xl border border-white/15 bg-white/[0.07] p-5 text-center text-sm text-white/60 backdrop-blur-md md:p-7">
+                Расписание уточняется
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

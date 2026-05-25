@@ -363,4 +363,20 @@ export async function MatchCenter() {
                       className={`grid grid-cols-12 items-center gap-2 rounded-lg px-3 py-2 text-sm ${row.team?.isOwn ? "bg-polotsk-500" : ""}`}
                     >
                       <span className="col-span-1 font-display tabular-nums text-white/80">{row.pos}</span>
-                      <span className="col-span-2 flex items
+                      <span className="col-span-2 flex items-center justify-center">
+                        {row.team?.logo ? <img src={row.team.logo} alt="" className="h-5 w-5 object-contain" /> : null}
+                      </span>
+                      <span className="col-span-5 truncate">{row.team?.name ?? "—"}</span>
+                      <span className="col-span-2 text-right text-white/60">{row.mp}</span>
+                      <span className="col-span-2 text-right font-display tabular-nums">{row.pts}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
