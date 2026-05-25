@@ -15,7 +15,9 @@ interface TeamClientProps {
 function normPos(p: unknown): Position | null {
   if (typeof p !== "string") return null;
   const v = p.trim().toUpperCase();
-  return v === "GK" || v === "DF" || v === "MF" || v === "FW" ? v : null;
+  return v === "GK" || v === "DF" || v === "MF" || v === "FW" || v === "COACH"
+    ? (v as Position)
+    : null;
 }
 
 export function TeamClient({ squad }: TeamClientProps) {
@@ -35,7 +37,16 @@ export function TeamClient({ squad }: TeamClientProps) {
       if (!pos) continue; // skip players without valid pos
       out.push({ ...p, pos });
     }
-    return out.sort((a, b) => a.num - b.num);
+    // Тренеры → в конец, иначе сортировка по номеру.
+    return out.sort((a, b) => {
+      const aIsCoach = a.pos === "COACH";
+      const bIsCoach = b.pos === "COACH";
+      if (aIsCoach && !bIsCoach) return 1;
+      if (!aIsCoach && bIsCoach) return -1;
+      const an = a.num ?? 999;
+      const bn = b.num ?? 999;
+      return an - bn;
+    });
   }, [squad]);
 
   const filtered = useMemo(
@@ -128,20 +139,24 @@ export function TeamClient({ squad }: TeamClientProps) {
                   >
                     {p.country}
                   </span>
-                  <span
-                    className={cn(
-                      "absolute right-3 top-3 inline-flex items-center rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm",
-                      badgeClass,
-                    )}
-                  >
-                    {p.pos}
-                  </span>
-                  <span
-                    className="absolute -bottom-2 right-2 select-none font-display tabular-nums text-white/15"
-                    style={{ fontSize: "8rem", lineHeight: "1" }}
-                  >
-                    {p.num}
-                  </span>
+                  {p.pos !== "COACH" && (
+                    <span
+                      className={cn(
+                        "absolute right-3 top-3 inline-flex items-center rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm",
+                        badgeClass,
+                      )}
+                    >
+                      {p.pos}
+                    </span>
+                  )}
+                  {p.num != null && (
+                    <span
+                      className="absolute -bottom-2 right-2 select-none font-display tabular-nums text-white/15"
+                      style={{ fontSize: "8rem", lineHeight: "1" }}
+                    >
+                      {p.num}
+                    </span>
+                  )}
                   <div className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-polotsk-700 via-polotsk-500/80 to-transparent p-4 text-xs text-white opacity-0 transition group-hover:translate-y-0 group-hover:opacity-100">
                     Возраст: {p.age}
                   </div>
@@ -155,9 +170,11 @@ export function TeamClient({ squad }: TeamClientProps) {
                       {p.name}
                     </p>
                   </div>
-                  <span className="font-display text-3xl tabular-nums text-polotsk-500">
-                    {p.num}
-                  </span>
+                  {p.num != null && (
+                    <span className="font-display text-3xl tabular-nums text-polotsk-500">
+                      {p.num}
+                    </span>
+                  )}
                 </div>
               </article>
             );

@@ -24,6 +24,7 @@ export const POS_LABEL: Record<Position, string> = {
   DF: "Защитник",
   MF: "Полузащитник",
   FW: "Нападающий",
+  COACH: "Тренер",
 };
 
 export const POS_FILTERS: { id: "ALL" | Position; label: string }[] = [
@@ -32,4 +33,5 @@ export const POS_FILTERS: { id: "ALL" | Position; label: string }[] = [
   { id: "DF", label: "Защитники" },
   { id: "MF", label: "Полузащитники" },
   { id: "FW", label: "Нападающие" },
+  { id: "COACH", label: "Тренеры" },
 ];

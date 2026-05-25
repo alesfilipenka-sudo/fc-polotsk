@@ -1,7 +1,8 @@
-export type Position = "GK" | "DF" | "MF" | "FW";
+export type Position = "GK" | "DF" | "MF" | "FW" | "COACH";
 
 export interface Player {
-  num: number;
+  /** Игровой номер. У тренеров отсутствует. */
+  num?: number;
   name: string;
   pos: Position;
   age: number;

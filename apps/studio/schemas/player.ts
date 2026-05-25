@@ -6,6 +6,7 @@ const POSITIONS = [
   { title: "Защитник", value: "DF" },
   { title: "Полузащитник", value: "MF" },
   { title: "Нападающий", value: "FW" },
+  { title: "Тренер", value: "COACH" },
 ] as const;
 
 export const player = defineType({
@@ -23,8 +24,10 @@ export const player = defineType({
     defineField({
       name: "num",
       title: "Номер",
+      description: "Игровой номер. Для тренеров оставь пустым.",
       type: "number",
-      validation: (r) => r.required().integer().min(1).max(99),
+      validation: (r) => r.integer().min(1).max(99),
+      hidden: ({ parent }) => parent?.pos === "COACH",
     }),
     defineField({
       name: "pos",
@@ -37,7 +40,7 @@ export const player = defineType({
       name: "age",
       title: "Возраст",
       type: "number",
-      validation: (r) => r.required().integer().min(14).max(50),
+      validation: (r) => r.required().integer().min(14).max(85),
     }),
     defineField({
       name: "country",
@@ -64,8 +67,9 @@ export const player = defineType({
   preview: {
     select: { title: "name", num: "num", pos: "pos", media: "photo" },
     prepare({ title, num, pos }) {
+      const prefix = num != null ? `#${num} ` : "";
       return {
-        title: `#${num} ${title}`,
+        title: `${prefix}${title ?? "?"}`,
         subtitle: pos ? POSITIONS.find((p) => p.value === pos)?.title : "",
       };
     },

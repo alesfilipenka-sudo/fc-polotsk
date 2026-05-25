@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Phone, Mail, MapPin, Instagram, Send, Youtube } from "lucide-react";
-import { LogoLight, LogoDecor } from "./Logo";
+import { LogoDecor } from "./Logo";
 import { VKIcon } from "./icons/VKIcon";
 import { SITE } from "@/lib/constants";
 import { sanityFetch } from "@/lib/sanity";
@@ -69,7 +69,13 @@ export async function Footer() {
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-10 px-5 py-14 md:grid-cols-12 md:px-8">
         <div className="md:col-span-5">
           <div className="flex items-center gap-4">
-            <LogoLight size={64} />
+            <img
+              src="/logo.png"
+              alt="ФК Полоцк"
+              width={64}
+              height={64}
+              className="object-contain"
+            />
             <div>
               <p className="font-display text-2xl leading-none">{SITE.name}</p>
               <p className="text-xs uppercase tracking-eyebrow text-white/60">
