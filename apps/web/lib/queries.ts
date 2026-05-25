@@ -58,7 +58,7 @@ export const RESULTS_QUERY = `*[_type == "match" && status == "finished"] | orde
     minute,
     forTeam,
     ownGoal,
-    "name": player->name
+    "name": coalesce(player->name, playerName)
   }
 }`;
 
@@ -80,7 +80,7 @@ export const LAST_FINISHED_MATCH_QUERY = `*[_type == "match" && status == "finis
     minute,
     forTeam,
     ownGoal,
-    "name": player->name
+    "name": coalesce(player->name, playerName)
   }
 }`;
 

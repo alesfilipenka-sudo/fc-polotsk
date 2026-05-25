@@ -103,10 +103,18 @@ export const match = defineType({
             }),
             defineField({
               name: "player",
-              title: "Игрок",
+              title: "Игрок (из состава ФК Полоцк)",
               type: "reference",
               to: [{ type: "player" }],
-              validation: (r) => r.required(),
+              description:
+                "Заполняй для голов ФК Полоцк. Для голов соперника оставь пустым и используй поле «Имя автора (соперник)» ниже.",
+            }),
+            defineField({
+              name: "playerName",
+              title: "Имя автора (соперник)",
+              type: "string",
+              description:
+                "Заполняй когда забил игрок соперника, которого нет в базе. Если выбран игрок выше — это поле игнорируется.",
             }),
             defineField({
               name: "forTeam",
@@ -128,18 +136,31 @@ export const match = defineType({
               initialValue: false,
             }),
           ],
+          // Валидация уровня объекта: должен быть указан хотя бы один из
+          // player / playerName. Иначе непонятно кто забил.
+          validation: (r) =>
+            r.custom((g: Record<string, unknown> | undefined) => {
+              if (!g) return true;
+              const hasRef = !!g.player;
+              const hasName =
+                typeof g.playerName === "string" && g.playerName.trim() !== "";
+              if (hasRef || hasName) return true;
+              return "Укажи либо игрока из состава, либо имя автора (соперник)";
+            }),
           preview: {
             select: {
               minute: "minute",
               playerName: "player.name",
+              playerNameRaw: "playerName",
               own: "ownGoal",
               forTeam: "forTeam",
             },
-            prepare({ minute, playerName, own, forTeam }) {
+            prepare({ minute, playerName, playerNameRaw, own, forTeam }) {
+              const name = playerName ?? playerNameRaw ?? "?";
               const og = own ? " (автогол)" : "";
               const side = forTeam === "home" ? "🏠" : "✈️";
               return {
-                title: `${minute}' — ${playerName ?? "?"}${og}`,
+                title: `${minute}' — ${name}${og}`,
                 subtitle: side,
               };
             },
