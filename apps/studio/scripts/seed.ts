@@ -238,7 +238,6 @@ async function seed() {
     heroSubtitle:
       "ФК Полоцк — клуб с историей и амбициями. Следи за командой, ближайшими матчами и новостями клуба.",
     city: "Полоцк, Беларусь",
-    nextMatch: { _type: "reference", _ref: "match-next" },
     phone: "+375 (00) 000-00-00",
     email: "info@fcpolotsk.by",
     address: "Полоцк, Беларусь",

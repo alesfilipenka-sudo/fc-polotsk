@@ -12,7 +12,6 @@ export const siteSettings = defineType({
   icon: CogIcon,
   groups: [
     { name: "hero", title: "Hero" },
-    { name: "next", title: "Следующий матч" },
     { name: "contacts", title: "Контакты" },
     { name: "footer", title: "Footer" },
   ],
@@ -56,17 +55,6 @@ export const siteSettings = defineType({
       type: "string",
       group: "hero",
       initialValue: "Полоцк, Беларусь",
-    }),
-
-    // Next match
-    defineField({
-      name: "nextMatch",
-      title: "Следующий матч",
-      type: "reference",
-      to: [{ type: "match" }],
-      group: "next",
-      description:
-        "Матч, который покажется в hero-карточке и в верхней панели Match Center.",
     }),
 
     // Contacts

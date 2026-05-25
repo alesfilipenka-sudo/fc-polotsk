@@ -10,19 +10,7 @@ export const SITE_SETTINGS_QUERY = `*[_id == "siteSettings"][0]{
   email,
   address,
   footerDescription,
-  establishedYear,
-  "nextMatch": nextMatch->{
-    _id,
-    date,
-    competition,
-    tour,
-    venue,
-    status,
-    hs,
-    "as": as,
-    "home": home->{name, short, "logo": logo.asset->url, isOwn},
-    "away": away->{name, short, "logo": logo.asset->url, isOwn}
-  }
+  establishedYear
 }`;
 
 export const SQUAD_QUERY = `*[_type == "player"] | order(num asc){
