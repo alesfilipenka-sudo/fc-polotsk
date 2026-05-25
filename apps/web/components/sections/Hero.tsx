@@ -1,5 +1,6 @@
 import { ArrowRight, MapPin } from "lucide-react";
 import { LogoDecor } from "../Logo";
+import { Countdown } from "../Countdown";
 import { SITE } from "@/lib/constants";
 import { sanityFetch } from "@/lib/sanity";
 import {
@@ -228,12 +229,7 @@ export async function Hero() {
                   <TeamSide team={next?.away} side="away" />
                 </div>
                 <div className="mt-5 grid grid-cols-4 gap-2 border-t border-white/10 pt-5 text-center sm:gap-3">
-                  {["Дней", "Часов", "Минут", "Секунд"].map((label) => (
-                    <div key={label}>
-                      <p className="font-display text-2xl tabular-nums text-white sm:text-3xl">--</p>
-                      <p className="mt-1 text-[9px] uppercase tracking-eyebrow text-white/60 sm:text-[10px]">{label}</p>
-                    </div>
-                  ))}
+                  <Countdown targetIso={next?.date} />
                 </div>
                 <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-xs text-white/70">
                   <span>{next?.date ? formatMatchDate(next.date) : "Дата уточняется"}</span>
