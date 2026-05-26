@@ -13,6 +13,7 @@
     "@portabletext/react": "^3.2.0",
     "@sanity/client": "^6.22.5",
     "@sanity/image-url": "^1.1.0",
+    "jose": "^5.9.6",
     "lucide-react": "^0.468.0",
     "next": "15.5.15",
     "react": "^19.0.0",
