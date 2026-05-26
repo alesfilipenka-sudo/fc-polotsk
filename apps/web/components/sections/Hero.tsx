@@ -1,12 +1,15 @@
 import { ArrowRight, MapPin } from "lucide-react";
 import { LogoDecor } from "../Logo";
 import { Countdown } from "../Countdown";
+import { LiveBlock } from "../live-block/LiveBlock";
+import type { LiveMatch } from "../live-block/types";
 import { SITE } from "@/lib/constants";
 import { sanityFetch } from "@/lib/sanity";
 import {
   SITE_SETTINGS_QUERY,
   LAST_FINISHED_MATCH_QUERY,
   NEXT_MATCH_QUERY,
+  LIVE_MATCH_QUERY,
 } from "@/lib/queries";
 import { formatMatchDate, formatMatchTime, formatShortDate } from "@/lib/dateFormat";
 import { getMatchDisplayMode, getPolotskResult } from "@/lib/matchWindow";
@@ -159,10 +162,12 @@ function PostMatchStrip({ match }: { match: FinishedMatch }) {
 }
 
 export async function Hero() {
-  const [settings, lastMatch, nextMatch] = await Promise.all([
+  const [settings, lastMatch, nextMatch, liveMatch] = await Promise.all([
     sanityFetch<SiteSettings | null>(SITE_SETTINGS_QUERY),
     sanityFetch<FinishedMatch | null>(LAST_FINISHED_MATCH_QUERY),
     sanityFetch<NextMatch | null>(NEXT_MATCH_QUERY),
+    // Live тащим с revalidate=15s для свежей минуты/счёта.
+    sanityFetch<LiveMatch | null>(LIVE_MATCH_QUERY, {}, 15),
   ]);
 
   const badge = settings?.heroBadge ?? `Сезон ${SITE.season} · ${SITE.league}`;
@@ -174,9 +179,12 @@ export async function Hero() {
   const city = settings?.city ?? SITE.city;
   const next = nextMatch ?? null;
 
+  // Приоритет в правой колонке: LIVE → post-match strip + next-match card →
+  // только next-match → fallback "Расписание уточняется".
+  const showLive = !!liveMatch;
   const mode = getMatchDisplayMode(next, lastMatch);
-  const showPostMatch = mode === "post_match" || mode === "post_match_no_next";
-  const showNext = mode === "scheduled" || mode === "post_match";
+  const showPostMatch = !showLive && (mode === "post_match" || mode === "post_match_no_next");
+  const showNext = !showLive && (mode === "scheduled" || mode === "post_match");
 
   return (
     <section id="top" className="stadium-bg relative overflow-hidden text-white">
@@ -229,6 +237,8 @@ export async function Hero() {
           </div>
 
           <div className="md:col-span-5">
+            {showLive && liveMatch && <LiveBlock match={liveMatch} />}
+
             {showPostMatch && lastMatch && <PostMatchStrip match={lastMatch} />}
 
             {showNext && (
@@ -252,7 +262,7 @@ export async function Hero() {
               </div>
             )}
 
-            {!showPostMatch && !showNext && (
+            {!showLive && !showPostMatch && !showNext && (
               <div className="rounded-2xl border border-white/15 bg-white/[0.07] p-5 text-center text-sm text-white/60 backdrop-blur-md md:p-7">
                 Расписание уточняется
               </div>
