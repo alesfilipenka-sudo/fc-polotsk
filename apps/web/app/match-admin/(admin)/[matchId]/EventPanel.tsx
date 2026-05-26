@@ -321,7 +321,7 @@ export function EventPanel({
                     className="flex items-center gap-2 border-b border-slate-100 pb-2 last:border-0"
                   >
                     <span className="tabular-nums text-slate-500 w-9 shrink-0">
-                      {e.minute ?? "—"}'
+                      {e.minute ?? "—"}&prime;
                     </span>
                     <span aria-hidden>{eventIcon(e.type)}</span>
                     <span className="font-medium text-slate-800 truncate">

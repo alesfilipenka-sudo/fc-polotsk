@@ -108,7 +108,7 @@ export default async function EventPanelPage({ params }: PageProps) {
         </div>
         {m.status === "live" && m.currentMinute != null && (
           <p className="mt-1 text-center text-[10px] uppercase tracking-eyebrow text-red-500">
-            🔴 LIVE · {m.currentMinute}'
+            🔴 LIVE · {m.currentMinute}&prime;
           </p>
         )}
       </div>
