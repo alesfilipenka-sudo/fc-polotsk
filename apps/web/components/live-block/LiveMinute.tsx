@@ -13,9 +13,9 @@ interface LiveMinuteProps {
 
 /**
  * Минута live-матча. Если оператор не задал `currentMinute` в Studio —
- * считаем автоматически от kickoff (match.date). Каждую минуту тикаем.
+ * считаем автоматически от kickoff (match.date). Тикаем каждые 30 секунд.
  *
- * На SSR / первом рендере показываем `--` чтобы не было hydration mismatch
+ * На SSR / первом рендере возвращаем null чтобы не было hydration mismatch
  * (на сервере и клиенте Date.now() разный).
  */
 export function LiveMinute({
@@ -23,22 +23,23 @@ export function LiveMinute({
   override,
   cap = 120,
 }: LiveMinuteProps) {
-  // 1. Жёсткий override из CMS — приоритет.
-  if (override != null) {
-    return <>{override}'</>;
-  }
-
-  // 2. Авто-подсчёт от kickoff.
+  // Хуки всегда на верхнем уровне, до любых ранних возвратов.
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
+    if (override != null) return;
     setNow(Date.now());
     const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
-  }, []);
+  }, [override]);
 
+  // 1. Ручной override из CMS — приоритет.
+  if (override != null) {
+    return <>{override}&prime;</>;
+  }
+
+  // 2. Авто-подсчёт от kickoff.
   if (!kickoffIso || now == null) {
-    // SSR / нет kickoff — не показываем минуту вообще
     return null;
   }
 
@@ -49,7 +50,7 @@ export function LiveMinute({
     return null;
   }
   if (diffMin > cap) {
-    return <>{cap}'</>;
+    return <>{cap}&prime;</>;
   }
-  return <>{diffMin}'</>;
+  return <>{diffMin}&prime;</>;
 }
