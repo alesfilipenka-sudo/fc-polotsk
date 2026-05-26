@@ -166,6 +166,60 @@ export const NEXT_MATCH_QUERY = `*[_type == "match" && status == "scheduled" && 
   "away": away->{name, short, "logo": logo.asset->url, isOwn}
 }`;
 
+/**
+ * Live-матч сейчас идущий (status == "live"). Один документ или null.
+ *
+ * Возвращает всё, что нужно для LiveBlock на главной: счёт, минута,
+ * хронологический events[] с именами игроков (или free-text для соперников),
+ * формация / цвета фишек / lineups для будущих фаз (Iter 2).
+ *
+ * Для имени игрока используем coalesce(player->name, playerName) — на случай
+ * когда забил/получил карточку соперник, которого нет в нашей базе.
+ */
+export const LIVE_MATCH_QUERY = `*[_type == "match" && status == "live"] | order(date desc)[0]{
+  _id,
+  date,
+  competition,
+  tour,
+  venue,
+  currentMinute,
+  hs,
+  "as": as,
+  formation,
+  tokenColorHome,
+  tokenColorAway,
+  "home": home->{name, short, "logo": logo.asset->url, isOwn},
+  "away": away->{name, short, "logo": logo.asset->url, isOwn},
+  "events": events[]{
+    type,
+    minute,
+    forTeam,
+    ownGoal,
+    "name": coalesce(player->name, playerName),
+    "assistName": coalesce(assist->name, assistName),
+    "playerOffName": coalesce(playerOff->name, playerOffName)
+  },
+  "lineupHome": lineupHome[]{
+    isStarter,
+    isCaptain,
+    positionSlot,
+    "playerId": player->_id,
+    "name": coalesce(player->name, playerName),
+    "number": coalesce(player->num, playerNumber),
+    "position": coalesce(player->pos, position)
+  },
+  "lineupAway": lineupAway[]{
+    isStarter,
+    isCaptain,
+    positionSlot,
+    "playerId": player->_id,
+    "name": coalesce(player->name, playerName),
+    "number": coalesce(player->num, playerNumber),
+    "position": coalesce(player->pos, position)
+  },
+  stats
+}`;
+
 export const STANDINGS_QUERY = `*[_id == "standingsTable"][0]{
   season,
   updatedAt,

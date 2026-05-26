@@ -1,12 +1,15 @@
 import { Calendar, Clock, MapPin, ArrowRight, CalendarPlus } from "lucide-react";
 import { SectionHeader } from "../SectionHeader";
 import { LogoDecor } from "../Logo";
+import { LiveBlock } from "../live-block/LiveBlock";
+import type { LiveMatch } from "../live-block/types";
 import { sanityFetch } from "@/lib/sanity";
 import {
   RECENT_MATCHES_QUERY,
   STANDINGS_QUERY,
   LAST_FINISHED_MATCH_QUERY,
   NEXT_MATCH_QUERY,
+  LIVE_MATCH_QUERY,
 } from "@/lib/queries";
 import { formatMatchDate, formatMatchTime, formatShortDate } from "@/lib/dateFormat";
 import { getPolotskResult } from "@/lib/matchWindow";
@@ -184,18 +187,25 @@ function PostMatchCard({ match }: { match: FinishedMatch }) {
 }
 
 export async function MatchCenter() {
-  const [recent, standings, lastMatch, nextMatchData] = await Promise.all([
+  const [recent, standings, lastMatch, nextMatchData, liveMatch] = await Promise.all([
     sanityFetch<RecentMatch[]>(RECENT_MATCHES_QUERY),
     sanityFetch<Standings | null>(STANDINGS_QUERY),
     sanityFetch<FinishedMatch | null>(LAST_FINISHED_MATCH_QUERY),
     sanityFetch<NextMatch | null>(NEXT_MATCH_QUERY),
+    // Live-запрос ревалидируется чаще (15с вместо 60с), чтобы лента
+    // обновлялась почти в реальном времени без webhook'ов.
+    sanityFetch<LiveMatch | null>(LIVE_MATCH_QUERY, {}, 15),
   ]);
 
   const next = nextMatchData ?? null;
   const recentList = recent ?? [];
   const standingsRows = standings?.rows ?? [];
-  const showPostMatch = !!lastMatch;
-  const showNext = !!next;
+  // Live перебивает обе карточки — пока матч идёт, ни next, ни post-match не
+  // показываем чтобы не путать. Когда матч завершится (status=finished),
+  // он сам уйдёт из LIVE_MATCH_QUERY и появится в LAST_FINISHED_MATCH_QUERY.
+  const showLive = !!liveMatch;
+  const showPostMatch = !showLive && !!lastMatch;
+  const showNext = !showLive && !!next;
 
   return (
     <section id="matches" className="bg-white py-14 md:py-20">
@@ -211,9 +221,11 @@ export async function MatchCenter() {
 
         <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
           <div className="space-y-6 lg:col-span-7">
+            {showLive && liveMatch && <LiveBlock match={liveMatch} />}
+
             {showPostMatch && lastMatch && <PostMatchCard match={lastMatch} />}
 
-            {!showPostMatch && !showNext && (
+            {!showLive && !showPostMatch && !showNext && (
               <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
                 Расписание уточняется
               </div>
