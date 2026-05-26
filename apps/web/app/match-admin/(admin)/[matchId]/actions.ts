@@ -11,24 +11,19 @@ export interface CreateEventInput {
   type: EventType;
   minute: number;
   forTeam: Side;
-  // Если playerRef задан → ссылка на player document, иначе используется playerName.
   playerRef?: string;
   playerName?: string;
-  // Только для goal:
   assistRef?: string;
   assistName?: string;
   ownGoal?: boolean;
 }
 
 function randomKey() {
-  // Sanity требует уникальный _key у элементов массива
   return Math.random().toString(36).slice(2, 14);
 }
 
 /**
- * Добавляет событие в match.events[]. Для гола инкрементирует hs/as по
- * forTeam (т.к. forTeam уже означает «кому засчитан гол», ownGoal на счёт
- * не влияет — это просто отметка для отображения).
+ * Добавляет событие в match.events[]. Для гола инкрементирует hs/as.
  */
 export async function createEventAction(input: CreateEventInput) {
   if (!input.matchId) throw new Error("matchId is required");
@@ -43,7 +38,6 @@ export async function createEventAction(input: CreateEventInput) {
     throw new Error("playerRef or playerName is required");
   }
 
-  // Собираем объект-событие в формате схемы. _key обязателен.
   const event: Record<string, unknown> = {
     _type: "event",
     _key: randomKey(),
@@ -74,7 +68,6 @@ export async function createEventAction(input: CreateEventInput) {
     .setIfMissing({ events: [] })
     .insert("after", "events[-1]", [event]);
 
-  // Инкремент счёта для гола
   if (input.type === "goal") {
     patch = patch.setIfMissing({ hs: 0, as: 0 });
     const field = input.forTeam === "home" ? "hs" : "as";
@@ -95,7 +88,6 @@ export async function undoEventAction(matchId: string) {
   if (!matchId) throw new Error("matchId is required");
   const client = getWriteClient();
 
-  // Прочитаем последнее событие чтобы знать, нужно ли крутить счёт обратно.
   const match = await client.fetch<{
     events?: { _key: string; type?: string; forTeam?: string }[];
   } | null>(
@@ -120,8 +112,7 @@ export async function undoEventAction(matchId: string) {
 }
 
 /**
- * Перевод матча в новый статус. Используется кнопками «Начать матч» (live),
- * «Пауза/Возобновить» (scheduled↔live). Финализация (status=finished + scorers) — в Phase 2C.
+ * Перевод матча в новый статус scheduled ↔ live.
  */
 export async function setMatchStatusAction(
   matchId: string,
@@ -130,6 +121,72 @@ export async function setMatchStatusAction(
   if (!matchId) throw new Error("matchId is required");
   const client = getWriteClient();
   await client.patch(matchId).set({ status }).commit();
+  revalidatePath(`/match-admin/${matchId}`);
+  revalidatePath("/");
+}
+
+interface RawGoalEvent {
+  type?: string;
+  minute?: number;
+  forTeam?: "home" | "away";
+  ownGoal?: boolean;
+  player?: { _ref?: string };
+  playerName?: string;
+}
+
+/**
+ * Финализирует матч:
+ *   1. Читает events[] и фильтрует type="goal"
+ *   2. Маппит голы в формат scorers[] (тот же, что используется в пост-матч карточке)
+ *   3. Одной транзакцией: status="finished", finishedAt=now, scorers=synced
+ *
+ * После этого матч уходит из LIVE_MATCH_QUERY и появляется в
+ * LAST_FINISHED_MATCH_QUERY, пост-матч карточка показывает голы.
+ */
+export async function finalizeMatchAction(matchId: string) {
+  if (!matchId) throw new Error("matchId is required");
+  const client = getWriteClient();
+
+  const match = await client.fetch<{ events?: RawGoalEvent[] } | null>(
+    `*[_id == $matchId][0]{
+      "events": events[]{ type, minute, forTeam, ownGoal, player, playerName }
+    }`,
+    { matchId },
+  );
+
+  const events = match?.events ?? [];
+  const scorers = events
+    .filter(
+      (e) =>
+        e.type === "goal" &&
+        Number.isFinite(e.minute) &&
+        (e.forTeam === "home" || e.forTeam === "away"),
+    )
+    .map((e) => {
+      const goal: Record<string, unknown> = {
+        _type: "goal",
+        _key: randomKey(),
+        minute: e.minute,
+        forTeam: e.forTeam,
+        ownGoal: !!e.ownGoal,
+      };
+      if (e.player?._ref) {
+        goal.player = { _type: "reference", _ref: e.player._ref };
+      } else if (e.playerName && e.playerName.trim()) {
+        goal.playerName = e.playerName.trim();
+      }
+      return goal;
+    });
+
+  await client
+    .patch(matchId)
+    .set({
+      status: "finished",
+      finishedAt: new Date().toISOString(),
+      scorers,
+    })
+    .commit();
+
   revalidatePath(`/match-admin/${matchId}`);
   revalidatePath("/");
 }

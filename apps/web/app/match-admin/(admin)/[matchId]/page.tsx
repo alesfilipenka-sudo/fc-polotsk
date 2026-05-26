@@ -9,6 +9,7 @@ import {
 import { formatShortDate, formatMatchTime } from "@/lib/dateFormat";
 import { EventPanel, type EventItem, type PlayerOption } from "./EventPanel";
 import { StatusToggle } from "./StatusToggle";
+import { FinalizeButton } from "./FinalizeButton";
 
 interface TeamRef {
   name?: string;
@@ -67,12 +68,13 @@ export default async function EventPanelPage({ params }: PageProps) {
   if (!match) notFound();
   const m = match as AdminMatchDetail;
 
-  // Определяем на какой стороне Полоцк — для дефолта тогглера в форме
   const polotskIs: "home" | "away" | null = m.home?.isOwn
     ? "home"
     : m.away?.isOwn
     ? "away"
     : null;
+
+  const goalsCount = (m.events ?? []).filter((e) => e.type === "goal").length;
 
   return (
     <div className="space-y-4">
@@ -115,17 +117,22 @@ export default async function EventPanelPage({ params }: PageProps) {
 
       {/* Event panel (forms + log) */}
       {m.status !== "finished" ? (
-        <EventPanel
-          matchId={m._id}
-          homeName={m.home?.name}
-          awayName={m.away?.name}
-          polotskIs={polotskIs}
-          players={players ?? []}
-          events={m.events ?? []}
-        />
+        <>
+          <EventPanel
+            matchId={m._id}
+            homeName={m.home?.name}
+            awayName={m.away?.name}
+            polotskIs={polotskIs}
+            players={players ?? []}
+            events={m.events ?? []}
+          />
+          {m.status === "live" && (
+            <FinalizeButton matchId={m._id} goalsCount={goalsCount} />
+          )}
+        </>
       ) : (
         <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
-          Матч завершён — события только для просмотра. Финализация и редактирование scorers — через Studio.
+          Матч завершён — события только для просмотра. Если нужно что-то править — иди в Sanity Studio.
         </div>
       )}
     </div>
