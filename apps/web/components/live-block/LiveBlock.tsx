@@ -1,5 +1,6 @@
 import { LogoDecor } from "../Logo";
 import { EventFeed } from "./EventFeed";
+import { LiveMinute } from "./LiveMinute";
 import type { LiveMatch, LiveTeamRef, LiveEvent } from "./types";
 
 interface LiveBlockProps {
@@ -39,10 +40,12 @@ function TeamLogo({ team, size = 56 }: { team?: LiveTeamRef; size?: number }) {
 
 function LiveIndicator({
   minute,
+  kickoffIso,
   competition,
   tour,
 }: {
   minute?: number;
+  kickoffIso?: string;
   competition?: string;
   tour?: number;
 }) {
@@ -55,9 +58,10 @@ function LiveIndicator({
           <span className="relative inline-flex h-2 w-2 rounded-full bg-red-300" />
         </span>
         LIVE
-        {minute != null && (
-          <span className="font-display tabular-nums">· {minute}'</span>
-        )}
+        <span className="font-display tabular-nums">
+          <span>· </span>
+          <LiveMinute override={minute} kickoffIso={kickoffIso} />
+        </span>
       </span>
       <span className="truncate text-white/70">
         {(competition ?? "Матч")}{tourLabel}
@@ -95,7 +99,7 @@ function LastEventTicker({ event }: { event?: LiveEvent }) {
  * Публичная live-карточка в MatchCenter. Phase 1 = только лента событий.
  *
  * Все поля опциональны — если оператор не зашёл, всё работает с фолбэками:
- *   - currentMinute нет → просто "LIVE" без минуты
+ *   - currentMinute нет → авто-подсчёт от match.date в LiveMinute
  *   - hs/as нет → 0:0
  *   - events[] пуст → "Пока без событий"
  *   - имена нет → "?"
@@ -118,6 +122,7 @@ export function LiveBlock({ match }: LiveBlockProps) {
       <div className="relative">
         <LiveIndicator
           minute={match.currentMinute}
+          kickoffIso={match.date}
           competition={match.competition}
           tour={match.tour}
         />
