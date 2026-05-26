@@ -2,7 +2,7 @@ import type { SchemaTypeDefinition } from "sanity";
 
 import { team } from "./team";
 import { player } from "./player";
-import { match } from "./match";
+import { match, lineupEntry } from "./match";
 import { news } from "./news";
 import { standingsTable } from "./standingsTable";
 import { socialChannel } from "./socialChannel";
@@ -17,4 +17,6 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   standingsTable,
   socialChannel,
   siteSettings,
+  // objects
+  lineupEntry,
 ];
