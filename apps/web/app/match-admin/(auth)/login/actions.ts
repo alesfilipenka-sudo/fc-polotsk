@@ -8,14 +8,16 @@ import {
   MATCH_ADMIN_SESSION_COOKIE,
   MATCH_ADMIN_SESSION_TTL_HOURS,
 } from "@/lib/match-admin-auth";
+import { checkMatchWindow, formatNextMatchHint } from "@/lib/match-window";
 
 export interface LoginState {
   error?: string;
+  hint?: string;
 }
 
 /**
- * Server Action: проверяет пароль и ставит httpOnly cookie с JWT.
- * При успехе — редирект на ?from= (или /match-admin).
+ * Server Action: проверяет пароль, валидирует матчевое окно, выставляет
+ * httpOnly cookie с JWT. При успехе — редирект на ?from= (или /match-admin).
  */
 export async function loginAction(
   _prev: LoginState,
@@ -28,6 +30,15 @@ export async function loginAction(
     // 500ms задержка — простая защита от brute-force
     await new Promise((r) => setTimeout(r, 500));
     return { error: "Неверный пароль" };
+  }
+
+  // Пароль ок — проверяем что сейчас матчевый день.
+  const window = await checkMatchWindow();
+  if (!window.ok) {
+    return {
+      error: "Сейчас не матчевый день",
+      hint: formatNextMatchHint(window.nextMatchAt),
+    };
   }
 
   const token = await signSession();
