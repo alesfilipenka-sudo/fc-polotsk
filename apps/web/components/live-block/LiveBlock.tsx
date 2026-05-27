@@ -1,5 +1,7 @@
 import { LogoDecor } from "../Logo";
 import { EventFeed } from "./EventFeed";
+import { LineupsPanel } from "./LineupsPanel";
+import { LiveTabs, type LiveTabSpec } from "./LiveTabs";
 import { LiveMinute } from "./LiveMinute";
 import type { LiveMatch, LiveTeamRef, LiveEvent } from "./types";
 
@@ -96,20 +98,26 @@ function LastEventTicker({ event }: { event?: LiveEvent }) {
 }
 
 /**
- * Публичная live-карточка в MatchCenter. Phase 1 = только лента событий.
- *
- * Все поля опциональны — если оператор не зашёл, всё работает с фолбэками:
- *   - currentMinute нет → авто-подсчёт от match.date в LiveMinute
- *   - hs/as нет → 0:0
- *   - events[] пуст → "Пока без событий"
- *   - имена нет → "?"
+ * Публичная live-карточка в Hero. Содержит индикатор LIVE, счёт, last event
+ * ticker и переключатель табов (Лента / Составы). Каждая таба показывается
+ * только если для неё есть данные.
  */
 export function LiveBlock({ match }: LiveBlockProps) {
-  // Свежий event для тикера: с максимальной минутой
   const lastEvent = (match.events ?? [])
     .filter((e) => e && e.type)
     .slice()
     .sort((a, b) => (b.minute ?? 0) - (a.minute ?? 0))[0];
+
+  const hasLineups =
+    (match.lineupHome?.length ?? 0) > 0 ||
+    (match.lineupAway?.length ?? 0) > 0;
+
+  const tabs: LiveTabSpec[] = [
+    { id: "feed", label: "Лента" },
+    ...(hasLineups
+      ? ([{ id: "lineups", label: "Составы" }] as LiveTabSpec[])
+      : []),
+  ];
 
   return (
     <div className="relative overflow-hidden rounded-3xl bg-polotsk-500 p-6 text-white md:p-10">
@@ -163,10 +171,30 @@ export function LiveBlock({ match }: LiveBlockProps) {
         <LastEventTicker event={lastEvent} />
 
         <div className="mt-6">
-          <p className="mb-3 text-[10px] uppercase tracking-eyebrow text-white/60">
-            Лента матча
-          </p>
-          <EventFeed events={match.events} />
+          <LiveTabs
+            tabs={tabs}
+            feedContent={
+              <>
+                <p className="mb-3 text-[10px] uppercase tracking-eyebrow text-white/60">
+                  Лента матча
+                </p>
+                <EventFeed events={match.events} />
+              </>
+            }
+            lineupsContent={
+              hasLineups ? (
+                <LineupsPanel
+                  home={match.home}
+                  away={match.away}
+                  homeSquad={match.lineupHome}
+                  awaySquad={match.lineupAway}
+                  formation={match.formation}
+                  homeColor={match.tokenColorHome}
+                  awayColor={match.tokenColorAway}
+                />
+              ) : undefined
+            }
+          />
         </div>
       </div>
     </div>
