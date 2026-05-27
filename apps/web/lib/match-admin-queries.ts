@@ -5,11 +5,6 @@
  * (включая live и draft) и без CDN-кеша.
  */
 
-/**
- * Список матчей для главной админки. Сортировка ниже на клиенте:
- * сначала live, потом scheduled по дате (ближайший сверху), потом
- * последние finished. Берём широкое окно — последний месяц + всё будущее.
- */
 export const ADMIN_MATCH_LIST_QUERY = `*[_type == "match"] | order(date desc){
   _id,
   date,
@@ -24,8 +19,7 @@ export const ADMIN_MATCH_LIST_QUERY = `*[_type == "match"] | order(date desc){
 }`;
 
 /**
- * Один матч с полными данными для EventPanel. Тащим события + игроков
- * Полоцка для селекта.
+ * Один матч с полными данными для EventPanel + LineupEditor.
  */
 export const ADMIN_MATCH_DETAIL_QUERY = `*[_type == "match" && _id == $matchId][0]{
   _id,
@@ -37,6 +31,9 @@ export const ADMIN_MATCH_DETAIL_QUERY = `*[_type == "match" && _id == $matchId][
   hs,
   "as": as,
   currentMinute,
+  formation,
+  tokenColorHome,
+  tokenColorAway,
   "home": home->{name, short, "logo": logo.asset->url, isOwn},
   "away": away->{name, short, "logo": logo.asset->url, isOwn},
   "events": events[]{
@@ -49,12 +46,29 @@ export const ADMIN_MATCH_DETAIL_QUERY = `*[_type == "match" && _id == $matchId][
     "playerName": coalesce(player->name, playerName),
     "assistRef": assist._ref,
     "assistName": coalesce(assist->name, assistName)
+  },
+  "lineupHome": lineupHome[]{
+    _key,
+    isStarter,
+    isCaptain,
+    positionSlot,
+    "playerId": player->_id,
+    "playerName": coalesce(player->name, playerName),
+    "playerNumber": coalesce(player->num, playerNumber),
+    "position": coalesce(player->pos, position)
+  },
+  "lineupAway": lineupAway[]{
+    _key,
+    isStarter,
+    isCaptain,
+    positionSlot,
+    "playerId": player->_id,
+    "playerName": coalesce(player->name, playerName),
+    "playerNumber": coalesce(player->num, playerNumber),
+    "position": coalesce(player->pos, position)
   }
 }`;
 
-/**
- * Список игроков Полоцка для player-select в формах. Кешируется на сервере.
- */
 export const ADMIN_PLAYERS_QUERY = `*[_type == "player" && pos != "COACH"] | order(num asc){
   _id,
   name,

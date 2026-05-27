@@ -22,9 +22,6 @@ function randomKey() {
   return Math.random().toString(36).slice(2, 14);
 }
 
-/**
- * Добавляет событие в match.events[]. Для гола инкрементирует hs/as.
- */
 export async function createEventAction(input: CreateEventInput) {
   if (!input.matchId) throw new Error("matchId is required");
   if (!input.type) throw new Error("type is required");
@@ -80,10 +77,6 @@ export async function createEventAction(input: CreateEventInput) {
   revalidatePath("/");
 }
 
-/**
- * Удаляет последнее событие из match.events[]. Если это был гол —
- * декрементирует счёт.
- */
 export async function undoEventAction(matchId: string) {
   if (!matchId) throw new Error("matchId is required");
   const client = getWriteClient();
@@ -111,9 +104,6 @@ export async function undoEventAction(matchId: string) {
   revalidatePath("/");
 }
 
-/**
- * Перевод матча в новый статус scheduled ↔ live.
- */
 export async function setMatchStatusAction(
   matchId: string,
   status: "scheduled" | "live",
@@ -134,15 +124,6 @@ interface RawGoalEvent {
   playerName?: string;
 }
 
-/**
- * Финализирует матч:
- *   1. Читает events[] и фильтрует type="goal"
- *   2. Маппит голы в формат scorers[] (тот же, что используется в пост-матч карточке)
- *   3. Одной транзакцией: status="finished", finishedAt=now, scorers=synced
- *
- * После этого матч уходит из LIVE_MATCH_QUERY и появляется в
- * LAST_FINISHED_MATCH_QUERY, пост-матч карточка показывает голы.
- */
 export async function finalizeMatchAction(matchId: string) {
   if (!matchId) throw new Error("matchId is required");
   const client = getWriteClient();
@@ -188,5 +169,75 @@ export async function finalizeMatchAction(matchId: string) {
     .commit();
 
   revalidatePath(`/match-admin/${matchId}`);
+  revalidatePath("/");
+}
+
+/* ============================================================
+   LINEUPS
+   ============================================================ */
+
+export interface SaveLineupEntry {
+  playerRef?: string;
+  playerName?: string;
+  playerNumber?: number;
+  position?: string;
+  isStarter: boolean;
+  isCaptain: boolean;
+  positionSlot?: number;
+}
+
+export interface SaveLineupInput {
+  matchId: string;
+  side: Side;
+  formation?: string;
+  tokenColor?: string;
+  entries: SaveLineupEntry[];
+}
+
+/**
+ * Перезаписывает lineupHome или lineupAway указанной стороны.
+ * Также обновляет formation и tokenColorHome/Away (если переданы).
+ */
+export async function saveLineupAction(input: SaveLineupInput) {
+  if (!input.matchId) throw new Error("matchId is required");
+  if (input.side !== "home" && input.side !== "away") {
+    throw new Error("side must be 'home' or 'away'");
+  }
+
+  const cleaned = input.entries
+    .filter(
+      (e) =>
+        e.playerRef ||
+        (e.playerName && e.playerName.trim()),
+    )
+    .map((e) => {
+      const obj: Record<string, unknown> = {
+        _type: "lineupEntry",
+        _key: randomKey(),
+        isStarter: !!e.isStarter,
+        isCaptain: !!e.isCaptain,
+      };
+      if (e.positionSlot != null) obj.positionSlot = e.positionSlot;
+      if (e.playerRef) {
+        obj.player = { _type: "reference", _ref: e.playerRef };
+      } else {
+        obj.playerName = e.playerName!.trim();
+        if (e.playerNumber != null) obj.playerNumber = e.playerNumber;
+        if (e.position) obj.position = e.position;
+      }
+      return obj;
+    });
+
+  const lineupField = input.side === "home" ? "lineupHome" : "lineupAway";
+  const colorField = input.side === "home" ? "tokenColorHome" : "tokenColorAway";
+
+  const setObj: Record<string, unknown> = { [lineupField]: cleaned };
+  if (input.formation) setObj.formation = input.formation;
+  if (input.tokenColor) setObj[colorField] = input.tokenColor;
+
+  const client = getWriteClient();
+  await client.patch(input.matchId).set(setObj).commit();
+
+  revalidatePath(`/match-admin/${input.matchId}`);
   revalidatePath("/");
 }

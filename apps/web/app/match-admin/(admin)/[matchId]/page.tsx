@@ -10,6 +10,7 @@ import { formatShortDate, formatMatchTime } from "@/lib/dateFormat";
 import { EventPanel, type EventItem, type PlayerOption } from "./EventPanel";
 import { StatusToggle } from "./StatusToggle";
 import { FinalizeButton } from "./FinalizeButton";
+import { LineupEditor } from "./LineupEditor";
 
 interface TeamRef {
   name?: string;
@@ -17,6 +18,18 @@ interface TeamRef {
   logo?: string;
   isOwn?: boolean;
 }
+
+interface AdminLineupEntry {
+  _key?: string;
+  playerId?: string;
+  playerName?: string;
+  playerNumber?: number;
+  position?: string;
+  isStarter?: boolean;
+  isCaptain?: boolean;
+  positionSlot?: number;
+}
+
 interface AdminMatchDetail {
   _id: string;
   date?: string;
@@ -27,9 +40,14 @@ interface AdminMatchDetail {
   hs?: number;
   as?: number;
   currentMinute?: number;
+  formation?: string;
+  tokenColorHome?: string;
+  tokenColorAway?: string;
   home?: TeamRef;
   away?: TeamRef;
   events?: EventItem[];
+  lineupHome?: AdminLineupEntry[];
+  lineupAway?: AdminLineupEntry[];
 }
 
 interface PageProps {
@@ -114,6 +132,21 @@ export default async function EventPanelPage({ params }: PageProps) {
           </p>
         )}
       </div>
+
+      {m.status !== "finished" && (
+        <LineupEditor
+          matchId={m._id}
+          homeName={m.home?.name}
+          awayName={m.away?.name}
+          polotskIs={polotskIs}
+          players={players ?? []}
+          initialHome={m.lineupHome ?? []}
+          initialAway={m.lineupAway ?? []}
+          initialFormation={m.formation}
+          initialColorHome={m.tokenColorHome}
+          initialColorAway={m.tokenColorAway}
+        />
+      )}
 
       {/* Event panel (forms + log) */}
       {m.status !== "finished" ? (
