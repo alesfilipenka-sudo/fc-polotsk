@@ -19,7 +19,7 @@ export const ADMIN_MATCH_LIST_QUERY = `*[_type == "match"] | order(date desc){
 }`;
 
 /**
- * Один матч с полными данными для EventPanel + LineupEditor.
+ * Один матч с полными данными для EventPanel + LineupEditor + StatsEditor.
  */
 export const ADMIN_MATCH_DETAIL_QUERY = `*[_type == "match" && _id == $matchId][0]{
   _id,
@@ -34,6 +34,7 @@ export const ADMIN_MATCH_DETAIL_QUERY = `*[_type == "match" && _id == $matchId][
   formation,
   tokenColorHome,
   tokenColorAway,
+  stats,
   "home": home->{name, short, "logo": logo.asset->url, isOwn},
   "away": away->{name, short, "logo": logo.asset->url, isOwn},
   "events": events[]{

@@ -11,6 +11,7 @@ import { EventPanel, type EventItem, type PlayerOption } from "./EventPanel";
 import { StatusToggle } from "./StatusToggle";
 import { FinalizeButton } from "./FinalizeButton";
 import { LineupEditor } from "./LineupEditor";
+import { StatsEditor } from "./StatsEditor";
 
 interface TeamRef {
   name?: string;
@@ -30,6 +31,19 @@ interface AdminLineupEntry {
   positionSlot?: number;
 }
 
+interface AdminMatchStats {
+  shotsHome?: number;
+  shotsAway?: number;
+  shotsOnGoalHome?: number;
+  shotsOnGoalAway?: number;
+  possessionHome?: number;
+  possessionAway?: number;
+  cornersHome?: number;
+  cornersAway?: number;
+  offsidesHome?: number;
+  offsidesAway?: number;
+}
+
 interface AdminMatchDetail {
   _id: string;
   date?: string;
@@ -43,6 +57,7 @@ interface AdminMatchDetail {
   formation?: string;
   tokenColorHome?: string;
   tokenColorAway?: string;
+  stats?: AdminMatchStats;
   home?: TeamRef;
   away?: TeamRef;
   events?: EventItem[];
@@ -134,18 +149,27 @@ export default async function EventPanelPage({ params }: PageProps) {
       </div>
 
       {m.status !== "finished" && (
-        <LineupEditor
-          matchId={m._id}
-          homeName={m.home?.name}
-          awayName={m.away?.name}
-          polotskIs={polotskIs}
-          players={players ?? []}
-          initialHome={m.lineupHome ?? []}
-          initialAway={m.lineupAway ?? []}
-          initialFormation={m.formation}
-          initialColorHome={m.tokenColorHome}
-          initialColorAway={m.tokenColorAway}
-        />
+        <>
+          <LineupEditor
+            matchId={m._id}
+            homeName={m.home?.name}
+            awayName={m.away?.name}
+            polotskIs={polotskIs}
+            players={players ?? []}
+            initialHome={m.lineupHome ?? []}
+            initialAway={m.lineupAway ?? []}
+            initialFormation={m.formation}
+            initialColorHome={m.tokenColorHome}
+            initialColorAway={m.tokenColorAway}
+          />
+
+          <StatsEditor
+            matchId={m._id}
+            homeName={m.home?.name}
+            awayName={m.away?.name}
+            initial={m.stats}
+          />
+        </>
       )}
 
       {/* Event panel (forms + log) */}

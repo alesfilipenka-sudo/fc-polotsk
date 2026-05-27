@@ -194,10 +194,6 @@ export interface SaveLineupInput {
   entries: SaveLineupEntry[];
 }
 
-/**
- * Перезаписывает lineupHome или lineupAway указанной стороны.
- * Также обновляет formation и tokenColorHome/Away (если переданы).
- */
 export async function saveLineupAction(input: SaveLineupInput) {
   if (!input.matchId) throw new Error("matchId is required");
   if (input.side !== "home" && input.side !== "away") {
@@ -237,6 +233,59 @@ export async function saveLineupAction(input: SaveLineupInput) {
 
   const client = getWriteClient();
   await client.patch(input.matchId).set(setObj).commit();
+
+  revalidatePath(`/match-admin/${input.matchId}`);
+  revalidatePath("/");
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+
+export interface SaveStatsInput {
+  matchId: string;
+  shotsHome?: number;
+  shotsAway?: number;
+  shotsOnGoalHome?: number;
+  shotsOnGoalAway?: number;
+  possessionHome?: number;
+  possessionAway?: number;
+  cornersHome?: number;
+  cornersAway?: number;
+  offsidesHome?: number;
+  offsidesAway?: number;
+}
+
+/**
+ * Перезаписывает объект match.stats. Все поля опциональны — то, что
+ * передано, попадает в Sanity; что не передано (или null) — стирается.
+ */
+export async function saveStatsAction(input: SaveStatsInput) {
+  if (!input.matchId) throw new Error("matchId is required");
+
+  // Cоберём чистый объект — только определённые числа.
+  const stats: Record<string, number> = {};
+  const keys: Array<keyof SaveStatsInput> = [
+    "shotsHome",
+    "shotsAway",
+    "shotsOnGoalHome",
+    "shotsOnGoalAway",
+    "possessionHome",
+    "possessionAway",
+    "cornersHome",
+    "cornersAway",
+    "offsidesHome",
+    "offsidesAway",
+  ];
+  for (const k of keys) {
+    const v = input[k];
+    if (typeof v === "number" && Number.isFinite(v)) {
+      stats[k] = v;
+    }
+  }
+
+  const client = getWriteClient();
+  await client.patch(input.matchId).set({ stats }).commit();
 
   revalidatePath(`/match-admin/${input.matchId}`);
   revalidatePath("/");
