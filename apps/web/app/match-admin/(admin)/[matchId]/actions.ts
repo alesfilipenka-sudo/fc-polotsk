@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getWriteClient } from "@/lib/sanity-write";
 
-export type EventType = "goal" | "yellow" | "red";
+export type EventType = "goal" | "yellow" | "red" | "sub";
 export type Side = "home" | "away";
 
 export interface CreateEventInput {
@@ -11,11 +11,17 @@ export interface CreateEventInput {
   type: EventType;
   minute: number;
   forTeam: Side;
+  // Основной игрок: для goal/yellow/red — автор/получатель;
+  // для sub — выходящий на поле (playerOn).
   playerRef?: string;
   playerName?: string;
+  // Goal-only: ассистент
   assistRef?: string;
   assistName?: string;
   ownGoal?: boolean;
+  // Sub-only: уходящий с поля
+  playerOffRef?: string;
+  playerOffName?: string;
 }
 
 function randomKey() {
@@ -33,6 +39,14 @@ export async function createEventAction(input: CreateEventInput) {
   }
   if (!input.playerRef && !(input.playerName && input.playerName.trim())) {
     throw new Error("playerRef or playerName is required");
+  }
+  if (input.type === "sub") {
+    if (
+      !input.playerOffRef &&
+      !(input.playerOffName && input.playerOffName.trim())
+    ) {
+      throw new Error("Sub event requires playerOff (ref or name)");
+    }
   }
 
   const event: Record<string, unknown> = {
@@ -55,6 +69,14 @@ export async function createEventAction(input: CreateEventInput) {
       event.assist = { _type: "reference", _ref: input.assistRef };
     } else if (input.assistName && input.assistName.trim()) {
       event.assistName = input.assistName.trim();
+    }
+  }
+
+  if (input.type === "sub") {
+    if (input.playerOffRef) {
+      event.playerOff = { _type: "reference", _ref: input.playerOffRef };
+    } else {
+      event.playerOffName = input.playerOffName!.trim();
     }
   }
 
@@ -256,14 +278,9 @@ export interface SaveStatsInput {
   offsidesAway?: number;
 }
 
-/**
- * Перезаписывает объект match.stats. Все поля опциональны — то, что
- * передано, попадает в Sanity; что не передано (или null) — стирается.
- */
 export async function saveStatsAction(input: SaveStatsInput) {
   if (!input.matchId) throw new Error("matchId is required");
 
-  // Cоберём чистый объект — только определённые числа.
   const stats: Record<string, number> = {};
   const keys: Array<keyof SaveStatsInput> = [
     "shotsHome",

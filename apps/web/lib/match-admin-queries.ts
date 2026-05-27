@@ -46,7 +46,9 @@ export const ADMIN_MATCH_DETAIL_QUERY = `*[_type == "match" && _id == $matchId][
     "playerRef": player._ref,
     "playerName": coalesce(player->name, playerName),
     "assistRef": assist._ref,
-    "assistName": coalesce(assist->name, assistName)
+    "assistName": coalesce(assist->name, assistName),
+    "playerOffRef": playerOff._ref,
+    "playerOffName": coalesce(playerOff->name, playerOffName)
   },
   "lineupHome": lineupHome[]{
     _key,

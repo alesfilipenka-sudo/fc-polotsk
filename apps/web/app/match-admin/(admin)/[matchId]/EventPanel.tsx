@@ -24,13 +24,14 @@ export interface EventItem {
   ownGoal?: boolean;
   playerName?: string;
   assistName?: string;
+  playerOffName?: string;
 }
 
 interface EventPanelProps {
   matchId: string;
   homeName?: string;
   awayName?: string;
-  polotskIs: "home" | "away" | null; // на какой стороне Полоцк
+  polotskIs: "home" | "away" | null;
   players: PlayerOption[];
   events: EventItem[];
 }
@@ -39,10 +40,20 @@ const TAB_LABELS: Record<EventType, string> = {
   goal: "⚽ Гол",
   yellow: "🟨 Жёлтая",
   red: "🟥 Красная",
+  sub: "↕ Замена",
 };
+const TAB_ORDER: EventType[] = ["goal", "yellow", "red", "sub"];
 
 function eventIcon(t?: string) {
-  return t === "goal" ? "⚽" : t === "yellow" ? "🟨" : t === "red" ? "🟥" : t === "sub" ? "↕" : "·";
+  return t === "goal"
+    ? "⚽"
+    : t === "yellow"
+    ? "🟨"
+    : t === "red"
+    ? "🟥"
+    : t === "sub"
+    ? "↕"
+    : "·";
 }
 
 export function EventPanel({
@@ -57,15 +68,20 @@ export function EventPanel({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  // Per-tab form state
+  // Базовая часть формы
   const [forTeam, setForTeam] = useState<Side>(polotskIs ?? "home");
   const [minute, setMinute] = useState<string>("");
   const [playerRef, setPlayerRef] = useState<string>("");
   const [opponentName, setOpponentName] = useState<string>("");
+
+  // Goal-only
   const [assistRef, setAssistRef] = useState<string>("");
   const [ownGoal, setOwnGoal] = useState(false);
 
-  // Является ли выбранная сторона Полоцком — определяет, показывать selectбоксы или free-text
+  // Sub-only
+  const [playerOffRef, setPlayerOffRef] = useState<string>("");
+  const [opponentOffName, setOpponentOffName] = useState<string>("");
+
   const sideIsPolotsk = forTeam === polotskIs;
 
   function reset() {
@@ -74,6 +90,8 @@ export function EventPanel({
     setOpponentName("");
     setAssistRef("");
     setOwnGoal(false);
+    setPlayerOffRef("");
+    setOpponentOffName("");
   }
 
   function submit() {
@@ -84,12 +102,30 @@ export function EventPanel({
       return;
     }
     if (sideIsPolotsk && !playerRef) {
-      setError("Выбери игрока Полоцка");
+      setError(
+        tab === "sub" ? "Выбери выходящего игрока" : "Выбери игрока Полоцка",
+      );
       return;
     }
     if (!sideIsPolotsk && !opponentName.trim()) {
-      setError("Введи имя автора");
+      setError(
+        tab === "sub" ? "Введи имя выходящего" : "Введи имя автора",
+      );
       return;
+    }
+    if (tab === "sub") {
+      if (sideIsPolotsk && !playerOffRef) {
+        setError("Выбери уходящего игрока");
+        return;
+      }
+      if (sideIsPolotsk && playerOffRef === playerRef) {
+        setError("Выходящий и уходящий не могут совпадать");
+        return;
+      }
+      if (!sideIsPolotsk && !opponentOffName.trim()) {
+        setError("Введи имя уходящего");
+        return;
+      }
     }
 
     const payload: CreateEventInput = {
@@ -103,9 +139,15 @@ export function EventPanel({
     };
     if (tab === "goal") {
       payload.ownGoal = ownGoal;
-      // Ассист только когда забивал игрок Полоцка и есть выбранный ассистент
       if (sideIsPolotsk && assistRef && assistRef !== playerRef) {
         payload.assistRef = assistRef;
+      }
+    }
+    if (tab === "sub") {
+      if (sideIsPolotsk) {
+        payload.playerOffRef = playerOffRef;
+      } else {
+        payload.playerOffName = opponentOffName.trim();
       }
     }
 
@@ -130,11 +172,20 @@ export function EventPanel({
     });
   }
 
+  const playerLabel =
+    tab === "sub"
+      ? sideIsPolotsk
+        ? "Выходит на поле"
+        : "Имя выходящего (соперник)"
+      : sideIsPolotsk
+      ? "Игрок Полоцка"
+      : "Имя автора (соперник)";
+
   return (
     <div className="space-y-4">
       {/* Tabs */}
-      <div className="grid grid-cols-3 gap-2">
-        {(Object.keys(TAB_LABELS) as EventType[]).map((t) => (
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {TAB_ORDER.map((t) => (
           <button
             key={t}
             type="button"
@@ -200,43 +251,51 @@ export function EventPanel({
           />
         </label>
 
-        {/* Player */}
-        {sideIsPolotsk ? (
-          <label className="block">
-            <span className="mb-1.5 block text-[10px] uppercase tracking-eyebrow text-slate-400">
-              Игрок Полоцка
-            </span>
-            <select
-              value={playerRef}
-              onChange={(e) => setPlayerRef(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-polotsk-500"
-            >
-              <option value="">— выбери —</option>
-              {players.map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.num != null ? `#${p.num} ` : ""}
-                  {p.name}
-                  {p.pos ? ` · ${p.pos}` : ""}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : (
-          <label className="block">
-            <span className="mb-1.5 block text-[10px] uppercase tracking-eyebrow text-slate-400">
-              Имя автора (соперник)
-            </span>
-            <input
-              type="text"
-              value={opponentName}
-              onChange={(e) => setOpponentName(e.target.value)}
-              placeholder="Иванов"
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-polotsk-500"
-            />
-          </label>
-        )}
+        {/* Player (main / playerOn) */}
+        <div
+          className={`${
+            tab === "sub"
+              ? "rounded-lg border border-green-200 bg-green-50/60 p-3"
+              : ""
+          }`}
+        >
+          {sideIsPolotsk ? (
+            <label className="block">
+              <span className="mb-1.5 block text-[10px] uppercase tracking-eyebrow text-slate-500">
+                {playerLabel} {tab === "sub" && "↑"}
+              </span>
+              <select
+                value={playerRef}
+                onChange={(e) => setPlayerRef(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-polotsk-500"
+              >
+                <option value="">— выбери —</option>
+                {players.map((p) => (
+                  <option key={p._id} value={p._id}>
+                    {p.num != null ? `#${p.num} ` : ""}
+                    {p.name}
+                    {p.pos ? ` · ${p.pos}` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <label className="block">
+              <span className="mb-1.5 block text-[10px] uppercase tracking-eyebrow text-slate-500">
+                {playerLabel} {tab === "sub" && "↑"}
+              </span>
+              <input
+                type="text"
+                value={opponentName}
+                onChange={(e) => setOpponentName(e.target.value)}
+                placeholder="Иванов"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-polotsk-500"
+              />
+            </label>
+          )}
+        </div>
 
-        {/* Goal-only fields */}
+        {/* Goal-only */}
         {tab === "goal" && (
           <>
             {sideIsPolotsk && (
@@ -273,6 +332,48 @@ export function EventPanel({
           </>
         )}
 
+        {/* Sub-only: playerOff */}
+        {tab === "sub" && (
+          <div className="rounded-lg border border-red-200 bg-red-50/60 p-3">
+            {sideIsPolotsk ? (
+              <label className="block">
+                <span className="mb-1.5 block text-[10px] uppercase tracking-eyebrow text-slate-500">
+                  Уходит с поля ↓
+                </span>
+                <select
+                  value={playerOffRef}
+                  onChange={(e) => setPlayerOffRef(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-polotsk-500"
+                >
+                  <option value="">— выбери —</option>
+                  {players
+                    .filter((p) => p._id !== playerRef)
+                    .map((p) => (
+                      <option key={p._id} value={p._id}>
+                        {p.num != null ? `#${p.num} ` : ""}
+                        {p.name}
+                        {p.pos ? ` · ${p.pos}` : ""}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            ) : (
+              <label className="block">
+                <span className="mb-1.5 block text-[10px] uppercase tracking-eyebrow text-slate-500">
+                  Имя уходящего (соперник) ↓
+                </span>
+                <input
+                  type="text"
+                  value={opponentOffName}
+                  onChange={(e) => setOpponentOffName(e.target.value)}
+                  placeholder="Петров"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-polotsk-500"
+                />
+              </label>
+            )}
+          </div>
+        )}
+
         {error && (
           <div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700">
             {error}
@@ -307,14 +408,19 @@ export function EventPanel({
           )}
         </div>
         {events.length === 0 ? (
-          <p className="text-sm text-slate-400">Пусто. Добавь первое событие выше.</p>
+          <p className="text-sm text-slate-400">
+            Пусто. Добавь первое событие выше.
+          </p>
         ) : (
           <ul className="space-y-2 text-sm">
             {events
               .slice()
               .reverse()
               .map((e, i) => {
-                const sideLabel = e.forTeam === "home" ? homeName ?? "ХОЗ" : awayName ?? "ГОС";
+                const sideLabel =
+                  e.forTeam === "home"
+                    ? homeName ?? "ХОЗ"
+                    : awayName ?? "ГОС";
                 return (
                   <li
                     key={e._key ?? i}
@@ -326,7 +432,13 @@ export function EventPanel({
                     <span aria-hidden>{eventIcon(e.type)}</span>
                     <span className="font-medium text-slate-800 truncate">
                       {e.playerName ?? "?"}
+                      {e.type === "sub" && " ↑"}
                     </span>
+                    {e.type === "sub" && e.playerOffName && (
+                      <span className="text-xs text-slate-500 truncate">
+                        / {e.playerOffName} ↓
+                      </span>
+                    )}
                     {e.type === "goal" && e.ownGoal && (
                       <span className="text-xs text-slate-400">(а/г)</span>
                     )}
