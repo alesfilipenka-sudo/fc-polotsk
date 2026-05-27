@@ -1,6 +1,7 @@
 import { LogoDecor } from "../Logo";
 import { EventFeed } from "./EventFeed";
 import { LineupsPanel } from "./LineupsPanel";
+import { StatsPanel } from "./StatsPanel";
 import { LiveTabs, type LiveTabSpec } from "./LiveTabs";
 import { LiveMinute } from "./LiveMinute";
 import type { LiveMatch, LiveTeamRef, LiveEvent } from "./types";
@@ -99,8 +100,8 @@ function LastEventTicker({ event }: { event?: LiveEvent }) {
 
 /**
  * Публичная live-карточка в Hero. Содержит индикатор LIVE, счёт, last event
- * ticker и переключатель табов (Лента / Составы). Каждая таба показывается
- * только если для неё есть данные.
+ * ticker и переключатель табов (Лента / Составы / Статистика). Каждая таба
+ * показывается только если для неё есть данные.
  */
 export function LiveBlock({ match }: LiveBlockProps) {
   const lastEvent = (match.events ?? [])
@@ -112,10 +113,23 @@ export function LiveBlock({ match }: LiveBlockProps) {
     (match.lineupHome?.length ?? 0) > 0 ||
     (match.lineupAway?.length ?? 0) > 0;
 
+  // Stats показываем если хоть одно поле stats заполнено ИЛИ есть жёлтые
+  // карточки в events (они подсчитываются панелью автоматически).
+  const statsHasValues =
+    !!match.stats &&
+    Object.values(match.stats).some((v) => v != null && v !== 0);
+  const yellowCount = (match.events ?? []).filter(
+    (e) => e.type === "yellow",
+  ).length;
+  const hasStats = statsHasValues || yellowCount > 0;
+
   const tabs: LiveTabSpec[] = [
     { id: "feed", label: "Лента" },
     ...(hasLineups
       ? ([{ id: "lineups", label: "Составы" }] as LiveTabSpec[])
+      : []),
+    ...(hasStats
+      ? ([{ id: "stats", label: "Статистика" }] as LiveTabSpec[])
       : []),
   ];
 
@@ -191,6 +205,16 @@ export function LiveBlock({ match }: LiveBlockProps) {
                   formation={match.formation}
                   homeColor={match.tokenColorHome}
                   awayColor={match.tokenColorAway}
+                />
+              ) : undefined
+            }
+            statsContent={
+              hasStats ? (
+                <StatsPanel
+                  stats={match.stats}
+                  events={match.events}
+                  home={match.home}
+                  away={match.away}
                 />
               ) : undefined
             }
