@@ -115,7 +115,7 @@ function PostMatchStrip({ match }: { match: FinishedMatch }) {
         <span className="text-[10px] uppercase tracking-eyebrow text-white/60">
           Сыгран · {when ? formatShortDate(when) : ""}
         </span>
-        <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeStyles}`}>
+        <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeStyles}`}>
           {label}
         </span>
       </div>
@@ -131,27 +131,31 @@ function PostMatchStrip({ match }: { match: FinishedMatch }) {
         </div>
       </div>
       {scorers.length > 0 && (
-        <div className="mt-3 grid grid-cols-[1fr_auto_1fr] gap-3 pl-3 text-[11px] text-white/70">
-          <div className="flex flex-col gap-0.5">
+        <div className="mt-3 grid grid-cols-1 gap-1.5 pl-3 text-[11px] text-white/70 sm:grid-cols-[1fr_auto_1fr] sm:gap-3">
+          <div className="flex flex-col gap-0.5 min-w-0">
             {scorers
               .filter((s) => s.forTeam === "home")
               .map((s, i) => (
-                <div key={`h-${i}`}>
+                <div key={`h-${i}`} className="truncate">
                   <span aria-hidden>⚽</span> {s.name ?? "?"}
                   {s.minute != null ? ` ${s.minute}'` : ""}
                   {s.ownGoal ? " (а/г)" : ""}
                 </div>
               ))}
           </div>
-          <div />
-          <div className="flex flex-col gap-0.5 text-right">
+          <div className="hidden sm:block" />
+          <div className="flex flex-col gap-0.5 min-w-0 sm:text-right">
             {scorers
               .filter((s) => s.forTeam === "away")
               .map((s, i) => (
-                <div key={`a-${i}`}>
+                <div key={`a-${i}`} className="truncate">
+                  <span className="sm:hidden">
+                    <span aria-hidden>⚽</span>{" "}
+                  </span>
                   {s.minute != null ? `${s.minute}' ` : ""}
                   {s.name ?? "?"}
-                  {s.ownGoal ? " (а/г)" : ""} <span aria-hidden>⚽</span>
+                  {s.ownGoal ? " (а/г)" : ""}{" "}
+                  <span aria-hidden className="hidden sm:inline">⚽</span>
                 </div>
               ))}
           </div>
@@ -166,7 +170,6 @@ export async function Hero() {
     sanityFetch<SiteSettings | null>(SITE_SETTINGS_QUERY),
     sanityFetch<FinishedMatch | null>(LAST_FINISHED_MATCH_QUERY),
     sanityFetch<NextMatch | null>(NEXT_MATCH_QUERY),
-    // Live тащим с revalidate=15s для свежей минуты/счёта.
     sanityFetch<LiveMatch | null>(LIVE_MATCH_QUERY, {}, 15),
   ]);
 
@@ -179,8 +182,6 @@ export async function Hero() {
   const city = settings?.city ?? SITE.city;
   const next = nextMatch ?? null;
 
-  // Приоритет в правой колонке: LIVE → post-match strip + next-match card →
-  // только next-match → fallback "Расписание уточняется".
   const showLive = !!liveMatch;
   const mode = getMatchDisplayMode(next, lastMatch);
   const showPostMatch = !showLive && (mode === "post_match" || mode === "post_match_no_next");
@@ -211,7 +212,7 @@ export async function Hero() {
               {city}
             </p>
 
-            <h1 className="mt-6 font-display text-[16vw] leading-[0.85] md:text-[8.5rem]">
+            <h1 className="mt-6 font-display text-[13vw] leading-[0.85] md:text-[8.5rem]">
               {line1}
               <br />
               <span className="text-polotsk-300">{line2}</span>
@@ -222,14 +223,14 @@ export async function Hero() {
             <div className="mt-8 flex flex-wrap gap-3">
               <a
                 href="#matches"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-xs font-bold uppercase tracking-wider text-polotsk-700 transition hover:bg-polotsk-50"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-xs font-bold uppercase tracking-wider text-polotsk-700 transition hover:bg-polotsk-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-polotsk-300"
               >
                 Ближайший матч
                 <ArrowRight className="h-4 w-4" />
               </a>
               <a
                 href="#team"
-                className="inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white/10"
+                className="inline-flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
               >
                 Состав
               </a>

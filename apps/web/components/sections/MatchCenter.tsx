@@ -96,11 +96,11 @@ function TeamRow({ team }: { team?: TeamRef }) {
   return (
     <div className="flex items-center gap-2 min-w-0">
       {team?.logo ? (
-        <img src={team.logo} alt={name} className="h-8 w-8 object-contain" />
+        <img src={team.logo} alt={name} className="h-8 w-8 object-contain shrink-0" />
       ) : team?.isOwn ? (
-        <img src="/logo.png" alt="ФК Полоцк" className="h-8 w-8 object-contain" />
+        <img src="/logo.png" alt="ФК Полоцк" className="h-8 w-8 object-contain shrink-0" />
       ) : (
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 font-display text-xs text-slate-500">
+        <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-200 font-display text-xs text-slate-500">
           {team?.short ?? "?"}
         </span>
       )}
@@ -119,28 +119,34 @@ function PostMatchCard({ match }: { match: FinishedMatch }) {
   const scorers = match.scorers ?? [];
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 md:p-7">
+    <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 md:p-7">
       <span
         className="absolute left-0 top-6 bottom-6 w-1 rounded-full"
         style={{ background: accentColor }}
         aria-hidden
       />
-      <div className="flex items-center justify-between gap-3 pl-3">
-        <span className="text-[10px] uppercase tracking-eyebrow text-slate-400">
-          Сыгран · {when ? formatShortDate(when) : ""}
-          {match.competition ? ` · ${match.competition}` : ""}
-        </span>
-        <span
-          className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
-          style={{ background: accentColor }}
-        >
-          {label}
-        </span>
+      <div className="pl-3">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[10px] uppercase tracking-eyebrow text-slate-400">
+            Сыгран · {when ? formatShortDate(when) : ""}
+          </span>
+          <span
+            className="shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
+            style={{ background: accentColor }}
+          >
+            {label}
+          </span>
+        </div>
+        {match.competition && (
+          <p className="mt-1 text-[10px] uppercase tracking-eyebrow text-slate-400">
+            {match.competition}
+          </p>
+        )}
       </div>
 
-      <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4 pl-3">
+      <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 pl-3 sm:gap-4">
         <TeamRow team={match.home} />
-        <div className="flex items-center gap-2 shrink-0 font-display text-[2rem] md:text-[2.4rem] leading-none tabular-nums text-ink">
+        <div className="flex items-center gap-2 shrink-0 font-display text-[1.75rem] md:text-[2.4rem] leading-none tabular-nums text-ink">
           <span>{match.hs ?? "—"}</span>
           <span className="text-slate-300 text-xl">:</span>
           <span>{match.as ?? "—"}</span>
@@ -151,12 +157,12 @@ function PostMatchCard({ match }: { match: FinishedMatch }) {
       </div>
 
       {scorers.length > 0 && (
-        <div className="mt-4 grid grid-cols-[1fr_auto_1fr] gap-4 pl-3 text-xs text-slate-500">
-          <div className="flex flex-col gap-1">
+        <div className="mt-4 grid grid-cols-1 gap-2 pl-3 text-xs text-slate-500 sm:grid-cols-[1fr_auto_1fr] sm:gap-4">
+          <div className="flex flex-col gap-1 min-w-0">
             {scorers
               .filter((s) => s.forTeam === "home")
               .map((s, i) => (
-                <div key={`h-${i}`}>
+                <div key={`h-${i}`} className="truncate">
                   <span aria-hidden>⚽</span>{" "}
                   <span className="font-medium text-slate-700">{s.name ?? "?"}</span>
                   {s.minute != null ? ` ${s.minute}'` : ""}
@@ -164,16 +170,19 @@ function PostMatchCard({ match }: { match: FinishedMatch }) {
                 </div>
               ))}
           </div>
-          <div />
-          <div className="flex flex-col gap-1 text-right">
+          <div className="hidden sm:block" />
+          <div className="flex flex-col gap-1 min-w-0 sm:text-right">
             {scorers
               .filter((s) => s.forTeam === "away")
               .map((s, i) => (
-                <div key={`a-${i}`}>
+                <div key={`a-${i}`} className="truncate">
+                  <span className="sm:hidden">
+                    <span aria-hidden>⚽</span>{" "}
+                  </span>
                   {s.minute != null ? `${s.minute}' ` : ""}
                   <span className="font-medium text-slate-700">{s.name ?? "?"}</span>
                   {s.ownGoal ? " (а/г)" : ""}{" "}
-                  <span aria-hidden>⚽</span>
+                  <span aria-hidden className="hidden sm:inline">⚽</span>
                 </div>
               ))}
           </div>
@@ -220,7 +229,7 @@ export async function MatchCenter() {
             )}
 
             {showNext && (
-              <div className="relative overflow-hidden rounded-3xl bg-polotsk-500 p-6 text-white md:p-10">
+              <div className="relative overflow-hidden rounded-3xl bg-polotsk-500 p-5 text-white md:p-10">
                 <LogoDecor
                   size={300}
                   opacity={0.08}
@@ -276,14 +285,14 @@ export async function MatchCenter() {
                   <div className="mt-8 flex flex-wrap gap-3">
                     <a
                       href="#results"
-                      className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-polotsk-700 transition hover:bg-polotsk-50"
+                      className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-polotsk-700 transition hover:bg-polotsk-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-polotsk-300"
                     >
                       Статистика сезона
                       <ArrowRight className="h-4 w-4" />
                     </a>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white/10"
+                      className="inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                     >
                       <CalendarPlus className="h-4 w-4" />В календарь
                     </button>
