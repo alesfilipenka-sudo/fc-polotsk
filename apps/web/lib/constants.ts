@@ -12,13 +12,12 @@ export const SITE = {
 
 // Абсолютные пути + якоря — чтобы навигация работала и с главной, и со
 // страницы /news/[slug] (где якорей на главной не существует).
-// «Новости» теперь ведёт на отдельную страницу /news, а не на якорь
-// #news главной (т.к. там лента короткая на 6 карточек).
 export const NAV: readonly NavItem[] = [
   { href: "/", label: "Главная" },
   { href: "/#matches", label: "Матчи" },
   { href: "/news", label: "Новости" },
   { href: "/#team", label: "Команда" },
+  { href: "/history", label: "История" },
   { href: "/#social", label: "Соцсети" },
   { href: "/#results", label: "Результаты" },
 ] as const;

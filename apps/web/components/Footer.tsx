@@ -13,7 +13,7 @@ const COLUMNS = [
       { label: "Команда", href: "/#team" },
       { label: "Тренерский штаб", href: "/#team" },
       { label: "Академия", href: "#" },
-      { label: "История", href: "#" },
+      { label: "История", href: "/history" },
     ],
   },
   {

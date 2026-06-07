@@ -240,3 +240,22 @@ export const SOCIALS_QUERY = `*[_type == "socialChannel"] | order(order asc){
   followers,
   accent
 }`;
+
+/**
+ * История клуба — все эпохи в хронологическом порядке. Каждая со своим
+ * tone, фото, лидом, текстом и до 3 фактов.
+ */
+export const HISTORY_QUERY = `*[_type == "historyEra"] | order(order asc){
+  _id,
+  eraId,
+  year,
+  range,
+  tone,
+  kicker,
+  name,
+  lead,
+  body,
+  "photo": photo.asset->url,
+  "photoAlt": photo.caption,
+  facts[]{ icon, t, d }
+}`;
