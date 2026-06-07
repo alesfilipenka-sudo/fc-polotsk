@@ -2,17 +2,33 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { SITE } from "@/lib/constants";
 
+const DESCRIPTION = `${SITE.name} — официальная страница футбольного клуба из одноимённого города. Расписание матчей, состав команды, новости.`;
+
 export const metadata: Metadata = {
-  title: `${SITE.name} — Официальный сайт футбольного клуба`,
-  description: `${SITE.name} — профессиональный футбольный клуб из Полоцка. ${SITE.league} Беларуси. Расписание матчей, состав команды, новости клуба.`,
+  title: `${SITE.name} — официальный сайт`,
+  description: DESCRIPTION,
   metadataBase: new URL(SITE.url),
   openGraph: {
-    title: `${SITE.name} — Официальный сайт`,
-    description: `${SITE.name}. ${SITE.league} Беларуси, сезон ${SITE.season}.`,
+    title: `${SITE.name} — официальный сайт`,
+    description: DESCRIPTION,
     url: SITE.url,
     siteName: SITE.name,
     locale: "ru_BY",
     type: "website",
+    images: [
+      {
+        url: "/logo.png",
+        width: 1024,
+        height: 1024,
+        alt: `${SITE.name} — логотип клуба`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE.name} — официальный сайт`,
+    description: DESCRIPTION,
+    images: ["/logo.png"],
   },
 };
 
