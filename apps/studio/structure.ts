@@ -7,6 +7,7 @@ import {
   DocumentsIcon,
   TagIcon,
   EarthGlobeIcon,
+  ClockIcon,
 } from "@sanity/icons";
 
 /**
@@ -14,7 +15,7 @@ import {
  *
  * - `siteSettings` and `standingsTable` are singletons — surfaced at the top
  *   level so editors don't need to think about creating duplicates.
- * - Lists are grouped under categories (Squad, Matches, Content) for clarity.
+ * - Lists are grouped under categories (Squad, Matches, Content, History) for clarity.
  */
 export const structure: StructureResolver = (S) =>
   S.list()
@@ -68,4 +69,9 @@ export const structure: StructureResolver = (S) =>
                 .icon(EarthGlobeIcon),
             ]),
         ),
+
+      // History (новый раздел)
+      S.documentTypeListItem("historyEra")
+        .title("История клуба")
+        .icon(ClockIcon),
     ]);
