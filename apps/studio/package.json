@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
     "backfill:finishedAt": "tsx scripts/backfill-finished-at.ts",
-    "unset:next-match": "tsx scripts/unset-next-match.ts"
+    "unset:next-match": "tsx scripts/unset-next-match.ts",
+    "seed:history": "tsx scripts/seed-history.ts"
   },
   "dependencies": {
     "@sanity/icons": "^3.5.0",
