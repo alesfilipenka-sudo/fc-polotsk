@@ -7,6 +7,7 @@ import { news } from "./news";
 import { standingsTable } from "./standingsTable";
 import { socialChannel } from "./socialChannel";
 import { siteSettings } from "./siteSettings";
+import { historyEra } from "./historyEra";
 
 export const schemaTypes: SchemaTypeDefinition[] = [
   // documents
@@ -17,6 +18,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   standingsTable,
   socialChannel,
   siteSettings,
+  historyEra,
   // objects
   lineupEntry,
 ];
