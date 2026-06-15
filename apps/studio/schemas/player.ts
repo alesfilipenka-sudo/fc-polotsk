@@ -63,14 +63,30 @@ export const player = defineType({
       type: "text",
       rows: 4,
     }),
+    defineField({
+      name: "isArchived",
+      title: "В архиве",
+      description:
+        "Игрок ушёл из команды / тренер не работает. Документ остаётся в БД (исторические голы и события продолжают показывать имя), но он исчезает из публичного состава и из админ-форм. Сними галочку, если вернётся.",
+      type: "boolean",
+      initialValue: false,
+    }),
   ],
   preview: {
-    select: { title: "name", num: "num", pos: "pos", media: "photo" },
-    prepare({ title, num, pos }) {
+    select: {
+      title: "name",
+      num: "num",
+      pos: "pos",
+      media: "photo",
+      archived: "isArchived",
+    },
+    prepare({ title, num, pos, media, archived }) {
       const prefix = num != null ? `#${num} ` : "";
+      const archivedTag = archived ? " · 📦 архив" : "";
       return {
-        title: `${prefix}${title ?? "?"}`,
+        title: `${prefix}${title ?? "?"}${archivedTag}`,
         subtitle: pos ? POSITIONS.find((p) => p.value === pos)?.title : "",
+        media,
       };
     },
   },

@@ -27,10 +27,10 @@ const COLUMNS = [
 ];
 
 const FOOTER_SOCIAL = [
-  { Icon: Instagram, href: "https://instagram.com/", label: "Instagram" },
-  { Icon: Send, href: "https://t.me/", label: "Telegram" },
-  { Icon: VKIcon, href: "https://vk.com/", label: "VK" },
-  { Icon: Youtube, href: "https://youtube.com/", label: "YouTube" },
+  { Icon: Instagram, href: SITE.social.instagram, label: "Instagram" },
+  { Icon: Send, href: SITE.social.telegram, label: "Telegram" },
+  { Icon: VKIcon, href: SITE.social.vk, label: "VK" },
+  { Icon: Youtube, href: SITE.social.youtube, label: "YouTube" },
 ];
 
 interface FooterSettings {

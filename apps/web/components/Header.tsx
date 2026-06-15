@@ -10,9 +10,9 @@ import { NAV, SITE } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const SOCIAL_ICONS = [
-  { id: "instagram", Icon: Instagram, href: "https://instagram.com/", label: "Instagram" },
-  { id: "telegram", Icon: Send, href: "https://t.me/", label: "Telegram" },
-  { id: "vk", Icon: VKIcon, href: "https://vk.com/", label: "VK" },
+  { id: "instagram", Icon: Instagram, href: SITE.social.instagram, label: "Instagram" },
+  { id: "telegram", Icon: Send, href: SITE.social.telegram, label: "Telegram" },
+  { id: "vk", Icon: VKIcon, href: SITE.social.vk, label: "VK" },
 ];
 
 export function Header() {

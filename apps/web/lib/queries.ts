@@ -13,7 +13,7 @@ export const SITE_SETTINGS_QUERY = `*[_id == "siteSettings"][0]{
   establishedYear
 }`;
 
-export const SQUAD_QUERY = `*[_type == "player"] | order(num asc){
+export const SQUAD_QUERY = `*[_type == "player" && !(isArchived == true)] | order(num asc){
   _id,
   num,
   name,
@@ -36,7 +36,6 @@ export const NEWS_QUERY = `*[_type == "news"] | order(date desc)[0...6]{
 
 /**
  * Все новости — для индексной страницы /news.
- * Не лимитируем, страница сама рисует пагинацию (или просто scroll).
  */
 export const ALL_NEWS_QUERY = `*[_type == "news"] | order(date desc){
   _id,
@@ -51,7 +50,6 @@ export const ALL_NEWS_QUERY = `*[_type == "news"] | order(date desc){
 
 /**
  * Полная статья по slug. Для /news/[slug].
- * body[] разворачивает asset для imageBlock (фото внутри текста).
  */
 export const ARTICLE_QUERY = `*[_type == "news" && slug.current == $slug][0]{
   _id,
@@ -71,16 +69,10 @@ export const ARTICLE_QUERY = `*[_type == "news" && slug.current == $slug][0]{
   }
 }`;
 
-/**
- * Slugs всех новостей — для generateStaticParams.
- */
 export const ALL_NEWS_SLUGS_QUERY = `*[_type == "news" && defined(slug.current)]{
   "slug": slug.current
 }`;
 
-/**
- * 3 связанные статьи (исключая текущую). Берём свежие.
- */
 export const RELATED_NEWS_QUERY = `*[_type == "news" && slug.current != $slug] | order(date desc)[0...3]{
   _id,
   title,
@@ -92,9 +84,6 @@ export const RELATED_NEWS_QUERY = `*[_type == "news" && slug.current != $slug] |
   "imageUrl": coverImage.asset->url
 }`;
 
-/**
- * 4 свежих новости для sticky-sidebar статьи.
- */
 export const SIDEBAR_NEWS_QUERY = `*[_type == "news" && slug.current != $slug] | order(date desc)[0...4]{
   title,
   "slug": slug.current,
@@ -129,10 +118,6 @@ export const RESULTS_QUERY = `*[_type == "match" && status == "finished"] | orde
   }
 }`;
 
-/**
- * Последний завершённый матч — для 48-часового пост-матч окна в Hero.
- * Берём один документ; на клиенте проверяем (now - finishedAt) < 48h.
- */
 export const LAST_FINISHED_MATCH_QUERY = `*[_type == "match" && status == "finished"] | order(coalesce(finishedAt, date) desc)[0]{
   _id,
   date,
@@ -151,11 +136,6 @@ export const LAST_FINISHED_MATCH_QUERY = `*[_type == "match" && status == "finis
   }
 }`;
 
-/**
- * Следующий запланированный матч — берём по дате, без зависимости от
- * ручного выбора в siteSettings.nextMatch. Это позволяет показывать его в
- * Results-секции как «грядущий» сразу, как только админ создал документ.
- */
 export const NEXT_MATCH_QUERY = `*[_type == "match" && status == "scheduled" && date > now()] | order(date asc)[0]{
   _id,
   date,
@@ -168,13 +148,6 @@ export const NEXT_MATCH_QUERY = `*[_type == "match" && status == "scheduled" && 
 
 /**
  * Live-матч сейчас идущий (status == "live"). Один документ или null.
- *
- * Возвращает всё, что нужно для LiveBlock на главной: счёт, минута,
- * хронологический events[] с именами игроков (или free-text для соперников),
- * формация / цвета фишек / lineups для будущих фаз (Iter 2).
- *
- * Для имени игрока используем coalesce(player->name, playerName) — на случай
- * когда забил/получил карточку соперник, которого нет в нашей базе.
  */
 export const LIVE_MATCH_QUERY = `*[_type == "match" && status == "live"] | order(date desc)[0]{
   _id,
@@ -242,8 +215,7 @@ export const SOCIALS_QUERY = `*[_type == "socialChannel"] | order(order asc){
 }`;
 
 /**
- * История клуба — все эпохи в хронологическом порядке. Каждая со своим
- * tone, фото, лидом, текстом и до 3 фактов.
+ * История клуба — все эпохи в хронологическом порядке.
  */
 export const HISTORY_QUERY = `*[_type == "historyEra"] | order(order asc){
   _id,

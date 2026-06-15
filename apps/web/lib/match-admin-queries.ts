@@ -72,7 +72,7 @@ export const ADMIN_MATCH_DETAIL_QUERY = `*[_type == "match" && _id == $matchId][
   }
 }`;
 
-export const ADMIN_PLAYERS_QUERY = `*[_type == "player" && pos != "COACH"] | order(num asc){
+export const ADMIN_PLAYERS_QUERY = `*[_type == "player" && pos != "COACH" && !(isArchived == true)] | order(num asc){
   _id,
   name,
   num,
