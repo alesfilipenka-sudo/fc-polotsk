@@ -5,6 +5,7 @@ import { VKIcon } from "./icons/VKIcon";
 import { SITE } from "@/lib/constants";
 import { sanityFetch } from "@/lib/sanity";
 import { SITE_SETTINGS_QUERY } from "@/lib/queries";
+import { getSocialUrls } from "@/lib/social-urls";
 
 const COLUMNS = [
   {
@@ -26,13 +27,6 @@ const COLUMNS = [
   },
 ];
 
-const FOOTER_SOCIAL = [
-  { Icon: Instagram, href: SITE.social.instagram, label: "Instagram" },
-  { Icon: Send, href: SITE.social.telegram, label: "Telegram" },
-  { Icon: VKIcon, href: SITE.social.vk, label: "VK" },
-  { Icon: Youtube, href: SITE.social.youtube, label: "YouTube" },
-];
-
 interface FooterSettings {
   footerDescription?: string;
   establishedYear?: number;
@@ -43,7 +37,17 @@ interface FooterSettings {
 }
 
 export async function Footer() {
-  const settings = await sanityFetch<FooterSettings>(SITE_SETTINGS_QUERY);
+  const [settings, socials] = await Promise.all([
+    sanityFetch<FooterSettings>(SITE_SETTINGS_QUERY),
+    getSocialUrls(),
+  ]);
+
+  const FOOTER_SOCIAL = [
+    { Icon: Instagram, href: socials.instagram, label: "Instagram" },
+    { Icon: Send, href: socials.telegram, label: "Telegram" },
+    { Icon: VKIcon, href: socials.vk, label: "VK" },
+    { Icon: Youtube, href: socials.youtube, label: "YouTube" },
+  ];
 
   const description =
     settings?.footerDescription ??
