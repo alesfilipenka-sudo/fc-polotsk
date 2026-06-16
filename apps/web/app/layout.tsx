@@ -33,11 +33,11 @@ export const metadata: Metadata = {
     images: ["/logo.png"],
   },
   verification: {
-    // Заменишь PASTE-GOOGLE-CODE-HERE на значение `content` из мета-тега
+    // Заменишь 8Yq6cAfWS5qPho-Y1O-P27-hCZRVBoyYAdsUH3HoW-k на значение `content` из мета-тега
     // который выдаст Google Search Console на шаге верификации.
     // Полный тег от Google: <meta name="google-site-verification" content="ABC...xyz" />
     // Нам нужно только содержимое после content= — это и есть код.
-    google: "PASTE-GOOGLE-CODE-HERE",
+    google: "8Yq6cAfWS5qPho-Y1O-P27-hCZRVBoyYAdsUH3HoW-k",
     // Если будешь регистрировать в Яндекс.Вебмастер — раскомментируй:
     // yandex: "PASTE-YANDEX-CODE-HERE",
   },
