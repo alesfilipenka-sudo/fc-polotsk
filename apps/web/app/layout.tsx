@@ -32,6 +32,15 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     images: ["/logo.png"],
   },
+  verification: {
+    // Заменишь PASTE-GOOGLE-CODE-HERE на значение `content` из мета-тега
+    // который выдаст Google Search Console на шаге верификации.
+    // Полный тег от Google: <meta name="google-site-verification" content="ABC...xyz" />
+    // Нам нужно только содержимое после content= — это и есть код.
+    google: "PASTE-GOOGLE-CODE-HERE",
+    // Если будешь регистрировать в Яндекс.Вебмастер — раскомментируй:
+    // yandex: "PASTE-YANDEX-CODE-HERE",
+  },
 };
 
 export default function RootLayout({
