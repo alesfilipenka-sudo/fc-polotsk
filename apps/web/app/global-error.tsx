@@ -1,6 +1,7 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
+import Link from "next/link";
 import { useEffect } from "react";
 
 /**
@@ -48,12 +49,12 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             >
               Попробовать снова
             </button>
-            <a
+            <Link
               href="/"
               className="rounded-full border border-white/30 px-6 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white/10"
             >
               На главную
-            </a>
+            </Link>
           </div>
         </div>
       </body>
