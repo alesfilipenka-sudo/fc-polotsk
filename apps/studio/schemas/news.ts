@@ -148,6 +148,39 @@ export const news = defineType({
             },
           ],
         },
+        {
+          // YouTube видео. Просто вставь URL — сайт сам развернёт preview + iframe.
+          type: "object",
+          name: "youtubeBlock",
+          title: "YouTube видео",
+          fields: [
+            defineField({
+              name: "url",
+              title: "Ссылка YouTube",
+              description:
+                "Полная ссылка: youtu.be/XXX, youtube.com/watch?v=XXX или youtube.com/shorts/XXX",
+              type: "url",
+              validation: (r) =>
+                r.required().uri({
+                  scheme: ["http", "https"],
+                }),
+            }),
+            defineField({
+              name: "caption",
+              title: "Подпись (необязательно)",
+              type: "string",
+            }),
+          ],
+          preview: {
+            select: { url: "url", caption: "caption" },
+            prepare({ url, caption }) {
+              return {
+                title: caption ?? "YouTube видео",
+                subtitle: url ?? "",
+              };
+            },
+          },
+        },
       ],
     }),
   ],
