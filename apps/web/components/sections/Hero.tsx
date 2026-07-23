@@ -182,7 +182,18 @@ export async function Hero() {
   const city = settings?.city ?? SITE.city;
   const next = nextMatch ?? null;
 
-  const showLive = !!liveMatch;
+  // Защита от «забытого» live-матча: если админ не финализировал и с kickoff
+  // прошло больше 3 часов — считаем матч давно завершённым, LiveBlock не
+  // показываем (даже если status=live в CMS). Пусть увидят карточку
+  // следующего матча вместо застрявшего LIVE.
+  const LIVE_TIMEOUT_HOURS = 3;
+  const kickoffMs = liveMatch?.date ? new Date(liveMatch.date).getTime() : 0;
+  const hoursSinceKickoff = kickoffMs
+    ? (Date.now() - kickoffMs) / (3600 * 1000)
+    : 0;
+  const isLiveStale = kickoffMs > 0 && hoursSinceKickoff > LIVE_TIMEOUT_HOURS;
+
+  const showLive = !!liveMatch && !isLiveStale;
   const mode = getMatchDisplayMode(next, lastMatch);
   const showPostMatch = !showLive && (mode === "post_match" || mode === "post_match_no_next");
   const showNext = !showLive && (mode === "scheduled" || mode === "post_match");
