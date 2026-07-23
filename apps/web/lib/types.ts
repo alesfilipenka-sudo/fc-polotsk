@@ -8,6 +8,8 @@ export interface Player {
   age: number;
   country: string;
   photoUrl?: string;
+  /** URL slug для /player/[slug]. Может отсутствовать у старых записей. */
+  slug?: string;
 }
 
 export interface Team {

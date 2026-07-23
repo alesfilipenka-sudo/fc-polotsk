@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { SectionHeader } from "../SectionHeader";
 import { POS_FILTERS, POS_LABEL } from "@/lib/constants";
@@ -20,11 +21,90 @@ function normPos(p: unknown): Position | null {
     : null;
 }
 
+/**
+ * Внутренняя карточка игрока. Рендерит визуал (фото + бейджи + имя + номер).
+ * Не имеет собственной обёртки — обёртывается либо в <Link> (если у игрока
+ * есть slug) либо в <div> (fallback).
+ */
+function PlayerCardVisual({ p, idx }: { p: Player; idx: number }) {
+  const hasPhoto = !!p.photoUrl;
+  const badgeClass = hasPhoto
+    ? "bg-polotsk-500/90 text-white"
+    : "bg-white/15 text-white";
+  return (
+    <div
+      className="group animate-fade-in-up"
+      style={{ animationDelay: `${idx * 40}ms` }}
+    >
+      <div
+        className="ph-jersey relative aspect-[3/4] overflow-hidden rounded-2xl"
+        style={
+          hasPhoto
+            ? {
+                backgroundImage: `url(${p.photoUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center top",
+              }
+            : undefined
+        }
+      >
+        <span
+          className={cn(
+            "absolute left-3 top-3 inline-flex items-center rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm",
+            badgeClass,
+          )}
+        >
+          {p.country}
+        </span>
+        {p.pos !== "COACH" && (
+          <span
+            className={cn(
+              "absolute right-3 top-3 inline-flex items-center rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm",
+              badgeClass,
+            )}
+          >
+            {p.pos}
+          </span>
+        )}
+        {p.num != null && (
+          <span
+            className="absolute -bottom-2 right-2 select-none font-display tabular-nums text-white/15"
+            style={{ fontSize: "8rem", lineHeight: "1" }}
+          >
+            {p.num}
+          </span>
+        )}
+        <div className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-polotsk-700 via-polotsk-500/80 to-transparent p-4 text-xs text-white opacity-0 transition group-hover:translate-y-0 group-hover:opacity-100">
+          Возраст: {p.age}
+          {p.slug && (
+            <span className="ml-2 font-semibold uppercase tracking-eyebrow text-white/90">
+              · Подробнее →
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] uppercase tracking-eyebrow text-slate-400">
+            {POS_LABEL[p.pos]}
+          </p>
+          <p className="truncate font-display text-lg leading-tight text-slate-900 transition group-hover:text-polotsk-500">
+            {p.name}
+          </p>
+        </div>
+        {p.num != null && (
+          <span className="font-display text-3xl tabular-nums text-polotsk-500">
+            {p.num}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function TeamClient({ squad }: TeamClientProps) {
   const [filter, setFilter] = useState<"ALL" | Position>("ALL");
 
-  // Dedupe by _id (or by num+name as fallback) — defensive against duplicate
-  // Sanity documents that surface as repeated cards.
   const normalized = useMemo(() => {
     const seen = new Set<string>();
     const out: Player[] = [];
@@ -34,10 +114,9 @@ export function TeamClient({ squad }: TeamClientProps) {
       if (seen.has(key)) continue;
       seen.add(key);
       const pos = normPos(p.pos);
-      if (!pos) continue; // skip players without valid pos
+      if (!pos) continue;
       out.push({ ...p, pos });
     }
-    // Тренеры → в конец, иначе сортировка по номеру.
     return out.sort((a, b) => {
       const aIsCoach = a.pos === "COACH";
       const bIsCoach = b.pos === "COACH";
@@ -106,76 +185,25 @@ export function TeamClient({ squad }: TeamClientProps) {
 
         <div className="grid grid-cols-2 gap-5 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
           {filtered.map((p, idx) => {
-            const hasPhoto = !!p.photoUrl;
-            const badgeClass = hasPhoto
-              ? "bg-polotsk-500/90 text-white"
-              : "bg-white/15 text-white";
-            return (
-              <article
-                key={
-                  ((p as { _id?: string })._id as string) ??
-                  `${p.num}-${p.name}-${idx}`
-                }
-                className="group animate-fade-in-up"
-                style={{ animationDelay: `${idx * 40}ms` }}
-              >
-                <div
-                  className="ph-jersey relative aspect-[3/4] overflow-hidden rounded-2xl"
-                  style={
-                    hasPhoto
-                      ? {
-                          backgroundImage: `url(${p.photoUrl})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center top",
-                        }
-                      : undefined
-                  }
+            const key =
+              ((p as { _id?: string })._id as string) ??
+              `${p.num}-${p.name}-${idx}`;
+            // Если у игрока есть slug — карточка кликабельна и ведёт на /player/[slug]
+            if (p.slug) {
+              return (
+                <Link
+                  key={key}
+                  href={`/player/${p.slug}`}
+                  className="rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-polotsk-500 focus-visible:ring-offset-2"
                 >
-                  <span
-                    className={cn(
-                      "absolute left-3 top-3 inline-flex items-center rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm",
-                      badgeClass,
-                    )}
-                  >
-                    {p.country}
-                  </span>
-                  {p.pos !== "COACH" && (
-                    <span
-                      className={cn(
-                        "absolute right-3 top-3 inline-flex items-center rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm",
-                        badgeClass,
-                      )}
-                    >
-                      {p.pos}
-                    </span>
-                  )}
-                  {p.num != null && (
-                    <span
-                      className="absolute -bottom-2 right-2 select-none font-display tabular-nums text-white/15"
-                      style={{ fontSize: "8rem", lineHeight: "1" }}
-                    >
-                      {p.num}
-                    </span>
-                  )}
-                  <div className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-polotsk-700 via-polotsk-500/80 to-transparent p-4 text-xs text-white opacity-0 transition group-hover:translate-y-0 group-hover:opacity-100">
-                    Возраст: {p.age}
-                  </div>
-                </div>
-                <div className="mt-3 flex items-end justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[11px] uppercase tracking-eyebrow text-slate-400">
-                      {POS_LABEL[p.pos]}
-                    </p>
-                    <p className="truncate font-display text-lg leading-tight text-slate-900">
-                      {p.name}
-                    </p>
-                  </div>
-                  {p.num != null && (
-                    <span className="font-display text-3xl tabular-nums text-polotsk-500">
-                      {p.num}
-                    </span>
-                  )}
-                </div>
+                  <PlayerCardVisual p={p} idx={idx} />
+                </Link>
+              );
+            }
+            // Без slug (старые записи) — не кликабельно
+            return (
+              <article key={key}>
+                <PlayerCardVisual p={p} idx={idx} />
               </article>
             );
           })}

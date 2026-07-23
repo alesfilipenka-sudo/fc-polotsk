@@ -20,7 +20,54 @@ export const SQUAD_QUERY = `*[_type == "player" && !(isArchived == true)] | orde
   pos,
   age,
   country,
-  "photoUrl": photo.asset->url
+  "photoUrl": photo.asset->url,
+  "slug": slug.current
+}`;
+
+/**
+ * Все игроки — для generateStaticParams в /player/[slug].
+ */
+export const ALL_PLAYER_SLUGS_QUERY = `*[_type == "player" && defined(slug.current) && !(isArchived == true)]{
+  "slug": slug.current
+}`;
+
+/**
+ * Один игрок по slug. Возвращает полные данные для страницы /player/[slug].
+ * bioLong разворачивает asset для imageBlock (то же что в новостях).
+ */
+export const PLAYER_BY_SLUG_QUERY = `*[_type == "player" && slug.current == $slug][0]{
+  _id,
+  num,
+  name,
+  pos,
+  age,
+  country,
+  birthDate,
+  height,
+  weight,
+  preferredFoot,
+  isArchived,
+  "slug": slug.current,
+  "photoUrl": photo.asset->url,
+  bio,
+  bioLong[]{
+    ...,
+    _type == "imageBlock" => {
+      ...,
+      "url": asset->url
+    }
+  },
+  "gallery": gallery[]{
+    "url": asset->url,
+    caption,
+    alt
+  },
+  previousClubs[]{
+    clubName,
+    from,
+    to,
+    note
+  }
 }`;
 
 export const NEWS_QUERY = `*[_type == "news"] | order(date desc)[0...6]{
