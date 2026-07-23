@@ -1,25 +1,31 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { sanityFetch } from "@/lib/sanity";
-import { SIDEBAR_NEWS_QUERY } from "@/lib/queries";
 import { formatShortDate } from "@/lib/dateFormat";
 import { ShareBar } from "./ShareBar";
 
-interface SidebarNewsItem {
+export interface SidebarNewsItem {
   title: string;
   slug?: string;
   date: string;
 }
 
 interface ArticleSidebarProps {
-  currentSlug: string;
+  items: SidebarNewsItem[];
+  socials?: {
+    telegram?: string;
+    vk?: string;
+    instagram?: string;
+  };
 }
 
-export async function ArticleSidebar({ currentSlug }: ArticleSidebarProps) {
-  const items =
-    (await sanityFetch<SidebarNewsItem[]>(SIDEBAR_NEWS_QUERY, {
-      slug: currentSlug,
-    })) ?? [];
+/**
+ * Sidebar на странице статьи /news/[slug]. Синхронный компонент —
+ * данные приходят из page.tsx (там всё грузится параллельно с article).
+ */
+export function ArticleSidebar({ items, socials }: ArticleSidebarProps) {
+  const tg = socials?.telegram ?? "https://t.me/";
+  const vk = socials?.vk ?? "https://vk.com/";
+  const ig = socials?.instagram ?? "https://instagram.com/";
 
   return (
     <div className="space-y-6 lg:sticky lg:top-28">
@@ -99,7 +105,7 @@ export async function ArticleSidebar({ currentSlug }: ArticleSidebarProps) {
         </p>
         <div className="mt-4 flex gap-2">
           <a
-            href="https://t.me/"
+            href={tg}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/30 hover:bg-white/10"
@@ -107,7 +113,7 @@ export async function ArticleSidebar({ currentSlug }: ArticleSidebarProps) {
             TG
           </a>
           <a
-            href="https://vk.com/"
+            href={vk}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/30 hover:bg-white/10"
@@ -115,7 +121,7 @@ export async function ArticleSidebar({ currentSlug }: ArticleSidebarProps) {
             VK
           </a>
           <a
-            href="https://instagram.com/"
+            href={ig}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/30 hover:bg-white/10"

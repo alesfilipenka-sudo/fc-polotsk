@@ -4,12 +4,15 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ArticlePage } from "@/components/news/ArticlePage";
 import type { NewsCardItem } from "@/components/news/NewsCard";
+import type { SidebarNewsItem } from "@/components/news/ArticleSidebar";
 import { sanityFetch } from "@/lib/sanity";
 import {
   ALL_NEWS_SLUGS_QUERY,
   ARTICLE_QUERY,
   RELATED_NEWS_QUERY,
+  SIDEBAR_NEWS_QUERY,
 } from "@/lib/queries";
+import { getSocialUrls } from "@/lib/social-urls";
 
 interface Article {
   _id: string;
@@ -51,9 +54,11 @@ export const revalidate = 60;
 
 export default async function NewsArticleRoute({ params }: PageProps) {
   const { slug } = await params;
-  const [article, related] = await Promise.all([
+  const [article, related, sidebarNews, socials] = await Promise.all([
     sanityFetch<Article | null>(ARTICLE_QUERY, { slug }),
     sanityFetch<NewsCardItem[]>(RELATED_NEWS_QUERY, { slug }),
+    sanityFetch<SidebarNewsItem[]>(SIDEBAR_NEWS_QUERY, { slug }),
+    getSocialUrls(),
   ]);
 
   if (!article) notFound();
@@ -62,7 +67,16 @@ export default async function NewsArticleRoute({ params }: PageProps) {
     <>
       <Header />
       <main className="flex-1">
-        <ArticlePage article={article as Article} related={related ?? []} />
+        <ArticlePage
+          article={article as Article}
+          related={related ?? []}
+          sidebarNews={sidebarNews ?? []}
+          socials={{
+            telegram: socials.telegram,
+            vk: socials.vk,
+            instagram: socials.instagram,
+          }}
+        />
       </main>
       <Footer />
     </>

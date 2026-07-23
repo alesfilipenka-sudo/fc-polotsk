@@ -1,7 +1,10 @@
 import { Breadcrumb } from "./Breadcrumb";
 import { ArticleHeader } from "./ArticleHeader";
 import { ArticleBody } from "./ArticleBody";
-import { ArticleSidebar } from "./ArticleSidebar";
+import {
+  ArticleSidebar,
+  type SidebarNewsItem,
+} from "./ArticleSidebar";
 import { RelatedNews } from "./RelatedNews";
 import { ShareBar } from "./ShareBar";
 import type { NewsCardItem } from "./NewsCard";
@@ -20,9 +23,20 @@ interface Article {
 interface ArticlePageProps {
   article: Article;
   related: NewsCardItem[];
+  sidebarNews: SidebarNewsItem[];
+  socials?: {
+    telegram?: string;
+    vk?: string;
+    instagram?: string;
+  };
 }
 
-export function ArticlePage({ article, related }: ArticlePageProps) {
+export function ArticlePage({
+  article,
+  related,
+  sidebarNews,
+  socials,
+}: ArticlePageProps) {
   return (
     <div className="bg-slate-50/30 pt-20 md:pt-24">
       <div className="mx-auto max-w-7xl px-5 pt-8 md:px-8 md:pt-12">
@@ -62,8 +76,7 @@ export function ArticlePage({ article, related }: ArticlePageProps) {
           </article>
 
           <aside className="min-w-0 lg:col-span-5">
-
-            <ArticleSidebar currentSlug={article.slug} />
+            <ArticleSidebar items={sidebarNews} socials={socials} />
           </aside>
         </div>
 
