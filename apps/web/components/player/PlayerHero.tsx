@@ -24,9 +24,9 @@ export function PlayerHero({ player }: PlayerHeroProps) {
       />
 
       <div className="relative mx-auto max-w-7xl px-5 pb-14 pt-28 md:px-8 md:pb-20 md:pt-32">
-        <div className="grid items-end gap-8 md:grid-cols-12 md:gap-10">
+        <div className="grid items-stretch gap-8 md:grid-cols-12 md:gap-10">
           {/* Left: text */}
-          <div className="md:col-span-7">
+          <div className="flex flex-col justify-end md:col-span-7">
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center rounded-full bg-polotsk-500 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
                 {posLabel}
@@ -67,10 +67,11 @@ export function PlayerHero({ player }: PlayerHeroProps) {
             </div>
           </div>
 
-          {/* Right: photo */}
+          {/* Right: photo — растягивается по высоте текстового блока слева.
+              На мобилке даём явную высоту, чтобы не схлопнулось. */}
           <div className="md:col-span-5">
             <div
-              className="ph-jersey relative aspect-[3/4] overflow-hidden rounded-3xl"
+              className="ph-jersey relative h-[420px] overflow-hidden rounded-3xl md:h-full md:min-h-[420px]"
               style={
                 player.photoUrl
                   ? {
