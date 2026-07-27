@@ -65,12 +65,15 @@ export function buildWebSiteSchema() {
  */
 export function buildAthleteSchema(player: PlayerDetail): object {
   const posLabel = POS_LABEL[player.pos] ?? player.pos;
+  // Google лучше распознаёт одиночный @type. Использовать массив ["Person","Athlete"]
+  // рискованно — тест обнаружения может пропустить схему. Person + доп поля
+  // (jobTitle, memberOf) достаточно для клубного сайта.
   return {
     "@context": "https://schema.org",
-    "@type": ["Person", "Athlete"],
+    "@type": "Person",
     name: player.name,
     url: `${SITE.url}/player/${player.slug}`,
-    image: player.photoUrl,
+    ...(player.photoUrl && { image: player.photoUrl }),
     nationality: {
       "@type": "Country",
       name: player.country,
@@ -78,8 +81,9 @@ export function buildAthleteSchema(player: PlayerDetail): object {
     ...(player.birthDate && { birthDate: player.birthDate }),
     ...(player.height && { height: `${player.height} cm` }),
     ...(player.weight && { weight: `${player.weight} kg` }),
-    jobTitle: posLabel,
+    jobTitle: `${posLabel}, футболист`,
     ...(player.num != null && { identifier: String(player.num) }),
+    worksFor: { "@id": CLUB_ID },
     memberOf: { "@id": CLUB_ID },
   };
 }

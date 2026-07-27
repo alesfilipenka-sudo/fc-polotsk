@@ -15,7 +15,8 @@ import { POS_LABEL, SITE } from "@/lib/constants";
  * (что он и делает по конвенции для файла с именем opengraph-image).
  */
 
-export const runtime = "edge";
+// Edge runtime не подходит — sanityFetch использует Node-специфичные
+// возможности (next/cache revalidate). Используем дефолтный Node runtime.
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

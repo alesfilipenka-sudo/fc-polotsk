@@ -47,7 +47,11 @@ export async function generateMetadata({
   const posLabel = POS_LABEL[player.pos] ?? player.pos;
   const description = `${posLabel}${player.num != null ? `, № ${player.num}` : ""} · ${player.country}. ${SITE.name} — состав ${SITE.season}.`;
   const canonicalUrl = `${SITE.url}/player/${player.slug}`;
-  const ogImages = player.photoUrl ? [{ url: player.photoUrl }] : undefined;
+  // Не задаём openGraph.images и twitter.images вручную —
+  // opengraph-image.tsx в этой же папке автоматически добавит правильные
+  // og:image и twitter:image теги через file convention Next.js.
+  // Если задавать оба — получим дублирование og:image тегов и мессенджеры
+  // выбирают непредсказуемо (Telegram обычно первый = photoUrl фото).
   return {
     title: `${player.name} — ${SITE.name}`,
     description,
@@ -60,13 +64,11 @@ export async function generateMetadata({
       url: canonicalUrl,
       type: "profile",
       locale: "ru_BY",
-      images: ogImages,
     },
     twitter: {
       card: "summary_large_image",
       title: `${player.name} · ${SITE.name}`,
       description,
-      images: player.photoUrl ? [player.photoUrl] : undefined,
     },
   };
 }
