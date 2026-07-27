@@ -69,7 +69,20 @@ export default async function PlayerRoute({ params }: PageProps) {
   // непредсказуемо на вложенных массивах, поэтому агрегируем сами.
   const matches =
     (await sanityFetch<FlatMatch[]>(MATCHES_FOR_STATS_QUERY)) ?? [];
-  const stats: PlayerStatsData = computePlayerStats(matches, player._id);
+  const computed: PlayerStatsData = computePlayerStats(matches, player._id);
+
+  // Ручные override'ы из Sanity перекрывают автоподсчёт, если заполнены.
+  // Например: старые матчи без detailed events, но статы за них известны.
+  // Список contributions всегда остаётся автоматическим — он показывает
+  // конкретные матчи по events, а не суммарное число.
+  const stats: PlayerStatsData = {
+    ...computed,
+    matchesPlayed: player.manualMatches ?? computed.matchesPlayed,
+    goals: player.manualGoals ?? computed.goals,
+    assists: player.manualAssists ?? computed.assists,
+    yellows: player.manualYellows ?? computed.yellows,
+    reds: player.manualReds ?? computed.reds,
+  };
 
   return (
     <>

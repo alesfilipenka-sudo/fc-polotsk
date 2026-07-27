@@ -48,6 +48,7 @@ export const player = defineType({
     { name: "profile", title: "Профиль" },
     { name: "media", title: "Медиа" },
     { name: "career", title: "Карьера" },
+    { name: "stats", title: "Статистика" },
   ],
   fields: [
     /* ---- Основное (обязательное для карточки) ---- */
@@ -298,6 +299,57 @@ export const player = defineType({
           },
         },
       ],
+    }),
+
+    /* ---- Статистика: ручные корректировки ---- */
+    // По умолчанию сайт СЧИТАЕТ статы автоматически по протоколам матчей
+    // (events[] в документах match). Если поле ниже заполнено — оно
+    // перекрывает автоподсчёт. Полезно для матчей где протоколы не
+    // заполнены детально, а суммарная стата игрока известна.
+    defineField({
+      name: "manualMatches",
+      title: "Матчи (ручной override)",
+      description:
+        "Оставь пустым — считается автоматически по составам матчей (lineup). Заполни числом чтобы перекрыть.",
+      type: "number",
+      group: "stats",
+      validation: (r) => r.integer().min(0).max(1000),
+    }),
+    defineField({
+      name: "manualGoals",
+      title: "Голы (ручной override)",
+      description:
+        "Оставь пустым — считается автоматически по событиям матчей. Заполни числом чтобы перекрыть.",
+      type: "number",
+      group: "stats",
+      validation: (r) => r.integer().min(0).max(1000),
+    }),
+    defineField({
+      name: "manualAssists",
+      title: "Ассисты (ручной override)",
+      description:
+        "Оставь пустым — считается автоматически. Заполни числом чтобы перекрыть.",
+      type: "number",
+      group: "stats",
+      validation: (r) => r.integer().min(0).max(1000),
+    }),
+    defineField({
+      name: "manualYellows",
+      title: "Жёлтые карточки (ручной override)",
+      description:
+        "Оставь пустым — считается автоматически. Заполни числом чтобы перекрыть.",
+      type: "number",
+      group: "stats",
+      validation: (r) => r.integer().min(0).max(100),
+    }),
+    defineField({
+      name: "manualReds",
+      title: "Красные карточки (ручной override)",
+      description:
+        "Оставь пустым — считается автоматически. Заполни числом чтобы перекрыть.",
+      type: "number",
+      group: "stats",
+      validation: (r) => r.integer().min(0).max(50),
     }),
   ],
   preview: {

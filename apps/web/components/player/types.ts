@@ -69,6 +69,13 @@ export interface PlayerDetail {
   bioLong?: unknown;
   gallery?: PlayerGalleryItem[];
   previousClubs?: PlayerPreviousClub[];
+  /* ---- Ручные корректировки статистики.
+     Если заполнены — перекрывают автоподсчёт из match.events[]. ---- */
+  manualMatches?: number;
+  manualGoals?: number;
+  manualAssists?: number;
+  manualYellows?: number;
+  manualReds?: number;
 }
 
 /**

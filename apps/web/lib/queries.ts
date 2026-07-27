@@ -67,7 +67,12 @@ export const PLAYER_BY_SLUG_QUERY = `*[_type == "player" && slug.current == $slu
     from,
     to,
     note
-  }
+  },
+  manualMatches,
+  manualGoals,
+  manualAssists,
+  manualYellows,
+  manualReds
 }`;
 
 /**
