@@ -19,10 +19,10 @@ export function PlayerBio({ bioLong, bio }: PlayerBioProps) {
   if (!hasBioLong && !hasBio) return null;
 
   return (
-    <div>
-      <p className="mb-4 text-[10px] uppercase tracking-eyebrow text-polotsk-500">
+    <section aria-label="Биография" className="space-y-4">
+      <h2 className="font-display text-2xl text-slate-900 md:text-3xl">
         Биография
-      </p>
+      </h2>
       <div className="prose-article">
         {hasBioLong ? (
           <PortableText
@@ -33,6 +33,6 @@ export function PlayerBio({ bioLong, bio }: PlayerBioProps) {
           <p className="whitespace-pre-line">{bio}</p>
         )}
       </div>
-    </div>
+    </section>
   );
 }

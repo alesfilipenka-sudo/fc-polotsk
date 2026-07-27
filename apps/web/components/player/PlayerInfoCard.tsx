@@ -40,22 +40,29 @@ export function PlayerInfoCard({ player }: PlayerInfoCardProps) {
   rows.push({ label: "Гражданство", value: player.country });
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-      <p className="mb-4 text-[10px] uppercase tracking-eyebrow text-slate-400">
-        Параметры
-      </p>
-      <dl className="divide-y divide-slate-100">
-        {rows.map((r) => (
-          <div key={r.label} className="flex items-baseline justify-between gap-4 py-2.5">
-            <dt className="text-xs uppercase tracking-eyebrow text-slate-500">
-              {r.label}
-            </dt>
-            <dd className="text-sm font-medium text-slate-900 text-right">
-              {r.value}
-            </dd>
-          </div>
-        ))}
-      </dl>
+    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100">
+      {/* Accent bar сверху — визуально привязывает карточку к бренду */}
+      <div className="h-1 bg-polotsk-500" aria-hidden />
+      <div className="p-5 md:p-6">
+        <p className="mb-4 text-[10px] font-semibold uppercase tracking-eyebrow text-slate-500">
+          Параметры
+        </p>
+        <dl className="divide-y divide-slate-100">
+          {rows.map((r) => (
+            <div
+              key={r.label}
+              className="flex items-baseline justify-between gap-4 py-2.5"
+            >
+              <dt className="text-xs uppercase tracking-eyebrow text-slate-500">
+                {r.label}
+              </dt>
+              <dd className="text-right text-sm font-medium text-slate-900">
+                {r.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
     </div>
   );
 }

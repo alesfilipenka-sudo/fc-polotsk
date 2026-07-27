@@ -26,10 +26,13 @@ export function PlayerCareerTimeline({ clubs }: PlayerCareerTimelineProps) {
   });
 
   return (
-    <div>
-      <p className="mb-4 text-[10px] uppercase tracking-eyebrow text-polotsk-500">
-        Карьера до ФК Полоцк
-      </p>
+    <section aria-label="Карьера" className="space-y-4">
+      <h2 className="font-display text-2xl text-slate-900 md:text-3xl">
+        Карьера
+        <span className="ml-2 text-sm font-normal uppercase tracking-eyebrow text-slate-400">
+          до ФК Полоцк
+        </span>
+      </h2>
       <ol className="relative border-l-2 border-slate-200 pl-6">
         {sorted.map((c, i) => (
           <li key={`${c.clubName}-${i}`} className="relative mb-6 last:mb-0">
@@ -54,6 +57,6 @@ export function PlayerCareerTimeline({ clubs }: PlayerCareerTimelineProps) {
           </li>
         ))}
       </ol>
-    </div>
+    </section>
   );
 }
