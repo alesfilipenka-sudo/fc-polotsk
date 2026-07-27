@@ -70,6 +70,35 @@ export const PLAYER_BY_SLUG_QUERY = `*[_type == "player" && slug.current == $slu
   }
 }`;
 
+/**
+ * Агрегированная статистика игрока из match.events[].
+ * Считаем: голы (без автоголов), ассисты, жёлтые/красные, сыгранные матчи.
+ * Плюс список 5 последних матчей с contributions (голы или ассисты).
+ *
+ * Параметр: $playerId — _id документа игрока (без drafts. префикса).
+ */
+export const PLAYER_STATS_QUERY = `{
+  "goals": count(*[_type == "match" && status == "finished"].events[type == "goal" && player._ref == $playerId && ownGoal != true]),
+  "assists": count(*[_type == "match" && status == "finished"].events[type == "goal" && assist._ref == $playerId]),
+  "yellows": count(*[_type == "match" && status == "finished"].events[type == "yellow" && player._ref == $playerId]),
+  "reds": count(*[_type == "match" && status == "finished"].events[type == "red" && player._ref == $playerId]),
+  "matchesPlayed": count(*[_type == "match" && status == "finished" && ($playerId in lineupHome[].player._ref || $playerId in lineupAway[].player._ref)]),
+  "contributions": *[_type == "match" && status == "finished" && (
+    count(events[type == "goal" && player._ref == $playerId && ownGoal != true]) > 0 ||
+    count(events[type == "goal" && assist._ref == $playerId]) > 0
+  )] | order(coalesce(finishedAt, date) desc)[0...5]{
+    _id,
+    date,
+    competition,
+    hs,
+    "as": as,
+    "home": home->{name, short, isOwn, "logo": logo.asset->url},
+    "away": away->{name, short, isOwn, "logo": logo.asset->url},
+    "goals": count(events[type == "goal" && player._ref == $playerId && ownGoal != true]),
+    "assists": count(events[type == "goal" && assist._ref == $playerId])
+  }
+}`;
+
 export const NEWS_QUERY = `*[_type == "news"] | order(date desc)[0...6]{
   _id,
   title,

@@ -5,17 +5,20 @@ import { PlayerInfoCard } from "./PlayerInfoCard";
 import { PlayerBio } from "./PlayerBio";
 import { PlayerCareerTimeline } from "./PlayerCareerTimeline";
 import { PlayerGallery } from "./PlayerGallery";
-import type { PlayerDetail } from "./types";
+import { PlayerStats } from "./PlayerStats";
+import type { PlayerDetail, PlayerStats as PlayerStatsData } from "./types";
+import { SITE } from "@/lib/constants";
 
 interface PlayerPageProps {
   player: PlayerDetail;
+  stats?: PlayerStatsData | null;
 }
 
 /**
  * Публичная страница игрока /player/[slug].
  * Layout: Hero (full-width) → 12-column grid (bio + info + gallery + career).
  */
-export function PlayerPage({ player }: PlayerPageProps) {
+export function PlayerPage({ player, stats }: PlayerPageProps) {
   return (
     <>
       <PlayerHero player={player} />
@@ -31,8 +34,9 @@ export function PlayerPage({ player }: PlayerPageProps) {
           </Link>
 
           <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
-            {/* Left: bio + gallery + career */}
+            {/* Left: stats + bio + career + gallery */}
             <div className="space-y-10 lg:col-span-8">
+              {stats && <PlayerStats stats={stats} season={SITE.season} />}
               <PlayerBio bioLong={player.bioLong} bio={player.bio} />
               <PlayerCareerTimeline clubs={player.previousClubs} />
               <PlayerGallery items={player.gallery} />

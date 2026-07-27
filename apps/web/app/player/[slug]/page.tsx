@@ -3,11 +3,15 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PlayerPage } from "@/components/player/PlayerPage";
-import type { PlayerDetail } from "@/components/player/types";
+import type {
+  PlayerDetail,
+  PlayerStats as PlayerStatsData,
+} from "@/components/player/types";
 import { sanityFetch } from "@/lib/sanity";
 import {
   ALL_PLAYER_SLUGS_QUERY,
   PLAYER_BY_SLUG_QUERY,
+  PLAYER_STATS_QUERY,
 } from "@/lib/queries";
 import { POS_LABEL, SITE } from "@/lib/constants";
 
@@ -56,11 +60,21 @@ export default async function PlayerRoute({ params }: PageProps) {
 
   if (!player) notFound();
 
+  // Стата подтягивается вторым запросом — нужен _id, а он есть только после
+  // fetch игрока. Кэш 300 сек = тот же revalidate что у страницы.
+  const stats = await sanityFetch<PlayerStatsData | null>(
+    PLAYER_STATS_QUERY,
+    { playerId: player._id },
+  );
+
   return (
     <>
       <Header />
       <main className="flex-1">
-        <PlayerPage player={player as PlayerDetail} />
+        <PlayerPage
+          player={player as PlayerDetail}
+          stats={stats ?? undefined}
+        />
       </main>
       <Footer />
     </>

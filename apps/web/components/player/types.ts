@@ -1,5 +1,43 @@
 import type { Position } from "@/lib/types";
 
+/**
+ * Один матч из истории игрока с его вкладом (голы/ассисты).
+ * Возвращается GROQ-агрегацией PLAYER_STATS_QUERY.
+ */
+export interface PlayerContribution {
+  _id: string;
+  date: string;
+  competition?: string;
+  hs?: number;
+  as?: number;
+  home: {
+    name: string;
+    short: string;
+    isOwn?: boolean;
+    logo?: string;
+  };
+  away: {
+    name: string;
+    short: string;
+    isOwn?: boolean;
+    logo?: string;
+  };
+  goals: number;
+  assists: number;
+}
+
+/**
+ * Агрегированная статистика игрока за все finished-матчи.
+ */
+export interface PlayerStats {
+  goals: number;
+  assists: number;
+  yellows: number;
+  reds: number;
+  matchesPlayed: number;
+  contributions: PlayerContribution[];
+}
+
 export interface PlayerPreviousClub {
   clubName?: string;
   from?: number;
