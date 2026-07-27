@@ -10,10 +10,14 @@ import type {
 import { sanityFetch } from "@/lib/sanity";
 import {
   ALL_PLAYER_SLUGS_QUERY,
+  MATCHES_FOR_STATS_QUERY,
   PLAYER_BY_SLUG_QUERY,
-  PLAYER_STATS_QUERY,
 } from "@/lib/queries";
 import { POS_LABEL, SITE } from "@/lib/constants";
+import {
+  computePlayerStats,
+  type FlatMatch,
+} from "@/lib/player-stats";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -60,21 +64,18 @@ export default async function PlayerRoute({ params }: PageProps) {
 
   if (!player) notFound();
 
-  // Стата подтягивается вторым запросом — нужен _id, а он есть только после
-  // fetch игрока. Кэш 300 сек = тот же revalidate что у страницы.
-  const stats = await sanityFetch<PlayerStatsData | null>(
-    PLAYER_STATS_QUERY,
-    { playerId: player._id },
-  );
+  // Тянем ВСЕ finished-матчи одним запросом (кэш 300 сек), затем считаем
+  // статистику игрока в TS. GROQ count() с фильтрами по _ref работает
+  // непредсказуемо на вложенных массивах, поэтому агрегируем сами.
+  const matches =
+    (await sanityFetch<FlatMatch[]>(MATCHES_FOR_STATS_QUERY)) ?? [];
+  const stats: PlayerStatsData = computePlayerStats(matches, player._id);
 
   return (
     <>
       <Header />
       <main className="flex-1">
-        <PlayerPage
-          player={player as PlayerDetail}
-          stats={stats ?? undefined}
-        />
+        <PlayerPage player={player as PlayerDetail} stats={stats} />
       </main>
       <Footer />
     </>
