@@ -139,6 +139,7 @@ export const ARTICLE_QUERY = `*[_type == "news" && slug.current == $slug][0]{
   "slug": slug.current,
   date,
   readTime,
+  "coverImageUrl": coverImage.asset->url,
   body[]{
     ...,
     _type == "imageBlock" => {

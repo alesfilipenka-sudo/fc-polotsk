@@ -14,6 +14,11 @@ const NEWS_SLUGS_WITH_DATE_QUERY = `*[_type == "news" && defined(slug.current)]{
   "updatedAt": _updatedAt
 }`;
 
+const PLAYER_SLUGS_WITH_DATE_QUERY = `*[_type == "player" && defined(slug.current) && !(isArchived == true)]{
+  "slug": slug.current,
+  "updatedAt": _updatedAt
+}`;
+
 /**
  * Динамический sitemap. Содержит:
  *   - статические страницы (главная, /news, /history)
@@ -61,7 +66,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-  return [...staticPages, ...newsPages];
+  // Динамические страницы игроков /player/[slug].
+  // Архивных не включаем — их страницы не индексируются.
+  interface PlayerRow {
+    slug?: string;
+    updatedAt?: string;
+  }
+  const playerRows =
+    (await sanityFetch<PlayerRow[]>(PLAYER_SLUGS_WITH_DATE_QUERY, {}, 3600)) ??
+    [];
+
+  const playerPages: MetadataRoute.Sitemap = playerRows
+    .filter((p) => p.slug)
+    .map((p) => ({
+      url: `${base}/player/${p.slug}`,
+      lastModified: p.updatedAt ? new Date(p.updatedAt) : now,
+      changeFrequency: "weekly" as const,
+      priority: 0.5,
+    }));
+
+  return [...staticPages, ...newsPages, ...playerPages];
 }
 
 // Используем ALL_NEWS_SLUGS_QUERY как fallback, если кому-то нужна простая версия

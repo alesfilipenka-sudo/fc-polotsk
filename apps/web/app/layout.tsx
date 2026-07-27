@@ -3,6 +3,11 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { SITE } from "@/lib/constants";
+import {
+  buildSportsTeamSchema,
+  buildWebSiteSchema,
+  serializeSchema,
+} from "@/lib/structured-data";
 
 const DESCRIPTION = `${SITE.name} — официальная страница футбольного клуба из одноимённого города. Расписание матчей, состав команды, новости.`;
 
@@ -43,6 +48,13 @@ export const metadata: Metadata = {
   },
 };
 
+// Site-wide JSON-LD (SportsTeam + WebSite) — рендерим в head раз, для всех
+// страниц. Отдельные страницы дополняют своими Athlete/NewsArticle-объектами.
+const SITE_JSON_LD = serializeSchema([
+  buildSportsTeamSchema(),
+  buildWebSiteSchema(),
+]);
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -58,6 +70,11 @@ export default function RootLayout({
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
+        />
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: SITE_JSON_LD }}
         />
       </head>
       <body className="flex min-h-screen flex-col">

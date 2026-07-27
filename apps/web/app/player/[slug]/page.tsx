@@ -18,6 +18,10 @@ import {
   computePlayerStats,
   type FlatMatch,
 } from "@/lib/player-stats";
+import {
+  buildAthleteSchema,
+  serializeSchema,
+} from "@/lib/structured-data";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -42,13 +46,27 @@ export async function generateMetadata({
   }
   const posLabel = POS_LABEL[player.pos] ?? player.pos;
   const description = `${posLabel}${player.num != null ? `, № ${player.num}` : ""} · ${player.country}. ${SITE.name} — состав ${SITE.season}.`;
+  const canonicalUrl = `${SITE.url}/player/${player.slug}`;
+  const ogImages = player.photoUrl ? [{ url: player.photoUrl }] : undefined;
   return {
     title: `${player.name} — ${SITE.name}`,
     description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${player.name} · ${SITE.name}`,
       description,
-      images: player.photoUrl ? [{ url: player.photoUrl }] : undefined,
+      url: canonicalUrl,
+      type: "profile",
+      locale: "ru_BY",
+      images: ogImages,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${player.name} · ${SITE.name}`,
+      description,
+      images: player.photoUrl ? [player.photoUrl] : undefined,
     },
   };
 }
@@ -84,8 +102,16 @@ export default async function PlayerRoute({ params }: PageProps) {
     reds: player.manualReds ?? computed.reds,
   };
 
+  // JSON-LD для поисковиков и мессенджеров (schema.org Athlete)
+  const jsonLd = serializeSchema(buildAthleteSchema(player as PlayerDetail));
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: jsonLd }}
+      />
       <Header />
       <main className="flex-1">
         <PlayerPage player={player as PlayerDetail} stats={stats} />

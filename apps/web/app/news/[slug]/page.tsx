@@ -13,6 +13,11 @@ import {
   SIDEBAR_NEWS_QUERY,
 } from "@/lib/queries";
 import { getSocialUrls } from "@/lib/social-urls";
+import { SITE } from "@/lib/constants";
+import {
+  buildNewsArticleSchema,
+  serializeSchema,
+} from "@/lib/structured-data";
 
 interface Article {
   _id: string;
@@ -23,6 +28,7 @@ interface Article {
   date?: string;
   readTime?: number;
   body?: unknown;
+  coverImageUrl?: string;
 }
 
 interface PageProps {
@@ -44,9 +50,31 @@ export async function generateMetadata({
   if (!article) {
     return { title: "Новость не найдена — ФК Полоцк" };
   }
+  const canonicalUrl = `${SITE.url}/news/${article.slug}`;
+  const ogImages = article.coverImageUrl
+    ? [{ url: article.coverImageUrl }]
+    : undefined;
   return {
     title: `${article.title} — ФК Полоцк`,
     description: article.subtitle ?? undefined,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title: article.title,
+      description: article.subtitle ?? undefined,
+      url: canonicalUrl,
+      type: "article",
+      locale: "ru_BY",
+      publishedTime: article.date,
+      images: ogImages,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description: article.subtitle ?? undefined,
+      images: article.coverImageUrl ? [article.coverImageUrl] : undefined,
+    },
   };
 }
 
@@ -63,8 +91,23 @@ export default async function NewsArticleRoute({ params }: PageProps) {
 
   if (!article) notFound();
 
+  const jsonLd = serializeSchema(
+    buildNewsArticleSchema({
+      title: article.title,
+      slug: article.slug,
+      date: article.date ?? new Date().toISOString(),
+      excerpt: article.subtitle,
+      imageUrl: article.coverImageUrl,
+    }),
+  );
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: jsonLd }}
+      />
       <Header />
       <main className="flex-1">
         <ArticlePage
