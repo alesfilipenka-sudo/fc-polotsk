@@ -101,10 +101,22 @@ function TeamSide({ team, side }: { team?: TeamRef; side: "home" | "away" }) {
 
 function PostMatchStrip({ match }: { match: FinishedMatch }) {
   const r = getPolotskResult(match);
-  const accent = r === "W" ? "bg-polotsk-300" : r === "L" ? "bg-red-400" : "bg-slate-300";
+  // Если счёт не заполнен (r === null) — не показываем бейдж, левая полоска нейтральная
+  const accent =
+    r === "W" ? "bg-polotsk-300" :
+    r === "L" ? "bg-red-400" :
+    r === "D" ? "bg-slate-300" :
+    "bg-white/20";
   const badgeStyles =
-    r === "W" ? "bg-polotsk-300 text-polotsk-900" : r === "L" ? "bg-red-400 text-white" : "bg-slate-300 text-ink";
-  const label = r === "W" ? "Победа" : r === "L" ? "Поражение" : "Ничья";
+    r === "W" ? "bg-polotsk-300 text-polotsk-900" :
+    r === "L" ? "bg-red-400 text-white" :
+    r === "D" ? "bg-slate-300 text-ink" :
+    "";
+  const label =
+    r === "W" ? "Победа" :
+    r === "L" ? "Поражение" :
+    r === "D" ? "Ничья" :
+    null;
   const when = match.finishedAt ?? match.date;
   const scorers = match.scorers ?? [];
 
@@ -115,9 +127,11 @@ function PostMatchStrip({ match }: { match: FinishedMatch }) {
         <span className="text-[10px] uppercase tracking-eyebrow text-white/60">
           Сыгран · {when ? formatShortDate(when) : ""}
         </span>
-        <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeStyles}`}>
-          {label}
-        </span>
+        {label && (
+          <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeStyles}`}>
+            {label}
+          </span>
+        )}
       </div>
       <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3 pl-3">
         <TeamMini team={match.home} side="home" />

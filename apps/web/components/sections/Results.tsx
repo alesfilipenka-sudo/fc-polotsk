@@ -2,12 +2,7 @@ import { SectionHeader } from "../SectionHeader";
 import { sanityFetch } from "@/lib/sanity";
 import { RESULTS_QUERY, OWN_STANDING_QUERY } from "@/lib/queries";
 import { formatShortDate } from "@/lib/dateFormat";
-import {
-  LEAGUE,
-  LEAGUE_MAX_POINTS,
-  isLeagueCompetition,
-  splitCupLabel,
-} from "@/lib/constants";
+import { LEAGUE, LEAGUE_MAX_POINTS, isLeagueCompetition } from "@/lib/constants";
 
 interface TeamRef {
   name?: string;
@@ -82,23 +77,6 @@ function computeLeagueStats(matches: MatchDoc[]): StandingRow {
   );
 }
 
-/**
- * Итоговые стадии кубков: для каждого кубка берём самый поздний матч.
- * "Кубок Беларуси 1/64" + "Кубок Беларуси 1/32" → "Кубок Беларуси — 1/32".
- */
-function cupSummary(matches: MatchDoc[]): string[] {
-  const latest = new Map<string, { round?: string; date: string }>();
-  for (const m of matches) {
-    if (!m.competition) continue;
-    const { cup, round } = splitCupLabel(m.competition);
-    const prev = latest.get(cup);
-    if (!prev || m.date > prev.date) latest.set(cup, { round, date: m.date });
-  }
-  return [...latest.entries()].map(([cup, v]) =>
-    v.round ? `${cup} — ${v.round}` : cup,
-  );
-}
-
 export async function Results() {
   const [matchesRaw, standing] = await Promise.all([
     sanityFetch<MatchDoc[]>(RESULTS_QUERY),
@@ -107,7 +85,6 @@ export async function Results() {
 
   const matches = matchesRaw ?? [];
   const leagueMatches = matches.filter((m) => isLeagueCompetition(m.competition));
-  const cupMatches = matches.filter((m) => !isLeagueCompetition(m.competition));
 
   // Таблица — источник истины. Расчёт по матчам только как запасной вариант.
   const fromTable = standing?.rows?.find((r) => r.isOwn) ?? null;
@@ -153,8 +130,6 @@ export async function Results() {
       compact: true,
     },
   ];
-
-  const cups = cupSummary(cupMatches);
 
   return (
     <section id="results" className="bg-ink py-14 text-white md:py-20">
@@ -279,16 +254,6 @@ export async function Results() {
           ))}
         </div>
 
-        <div className="mt-4 flex flex-col gap-1 text-xs text-white/40 md:flex-row md:items-center md:justify-between">
-          <p>
-            {usingTable
-              ? `${standing?.isFinal ? "Итоговая таблица" : "Турнирная таблица"} · ${stageLabel}${
-                  standing?.season ? ` · ${standing.season}` : ""
-                }`
-              : "По сыгранным матчам лиги — турнирная таблица в CMS не заполнена"}
-          </p>
-          {cups.length > 0 && <p>{cups.join(" · ")}</p>}
-        </div>
       </div>
     </section>
   );

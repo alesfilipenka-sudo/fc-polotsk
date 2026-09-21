@@ -113,8 +113,17 @@ function TeamRow({ team }: { team?: TeamRef }) {
 
 function PostMatchCard({ match }: { match: FinishedMatch }) {
   const r = getPolotskResult(match);
-  const accentColor = r === "W" ? "#234794" : r === "L" ? "#ef4444" : "#64748b";
-  const label = r === "W" ? "Победа" : r === "L" ? "Поражение" : "Ничья";
+  // Если счёт не заполнен (r === null) — показываем нейтральный вид, без бейджа
+  const accentColor =
+    r === "W" ? "#234794" :
+    r === "L" ? "#ef4444" :
+    r === "D" ? "#64748b" :
+    "#cbd5e1"; // slate-300 — нейтральная левая полоска
+  const label =
+    r === "W" ? "Победа" :
+    r === "L" ? "Поражение" :
+    r === "D" ? "Ничья" :
+    null;
   const when = match.finishedAt ?? match.date;
   const scorers = match.scorers ?? [];
 
@@ -130,12 +139,14 @@ function PostMatchCard({ match }: { match: FinishedMatch }) {
           <span className="text-[10px] uppercase tracking-eyebrow text-slate-400">
             Сыгран · {when ? formatShortDate(when) : ""}
           </span>
-          <span
-            className="shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
-            style={{ background: accentColor }}
-          >
-            {label}
-          </span>
+          {label && (
+            <span
+              className="shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
+              style={{ background: accentColor }}
+            >
+              {label}
+            </span>
+          )}
         </div>
         {match.competition && (
           <p className="mt-1 text-[10px] uppercase tracking-eyebrow text-slate-400">

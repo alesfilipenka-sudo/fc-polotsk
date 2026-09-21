@@ -175,11 +175,15 @@ job · startedAt · finishedAt · ok · created[] · updated[] · skipped[] · e
 Идемпотентность строится на предсказуемых идентификаторах:
 
 ```
-match.<sourceSlug>.<externalId>       → match.vtoraya-liga.25496
-team.<sourceSlug>                     → team.gazovik
-stage.<compSlug>.<seasonSlug>.<gid>   → stage.vtoraya-liga.2026.группа-b
-standings.<stageId>                   → standings.stage.vtoraya-liga.2026.группа-b
+match-<sourceSlug>-<externalId>       → match-vtoraya-liga-25496
+team-<sourceSlug>                     → team-gazovik
+stage-<compSlug>-<seasonSlug>-<gid>   → stage-vtoraya-liga-2026-gruppa-b
+standings-<stageId>                   → standings-vtoraya-liga-2026-gruppa-b
 ```
+
+Точки в `_id` использовать нельзя: Sanity резервирует их под системные
+пространства (`drafts.`, `versions.`). Документ с точечным префиксом создаётся
+без ошибки, но в обычные выборки не попадает — проверено на импорте.
 
 Любой повторный запуск синка — `createIfNotExists` + `patch`, дубли невозможны.
 

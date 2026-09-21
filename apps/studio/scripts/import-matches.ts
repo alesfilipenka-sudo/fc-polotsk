@@ -16,7 +16,10 @@
  *   --only=<key>         импортировать только один матч по его key
  *   --create-teams       создавать отсутствующие команды (иначе такие матчи пропускаются)
  *
- * Идемпотентность: _id матча детерминирован — `match.import.<key>`.
+ * Идемпотентность: _id матча детерминирован — `match-import-<key>`.
+ * Точки в _id использовать нельзя: Sanity резервирует их под системные
+ * пространства (drafts., versions.) — документ с точечным префиксом
+ * создаётся без ошибки, но в обычные выборки не попадает.
  * Повторный прогон обновляет тот же документ, дубли невозможны.
  * Дозаполнил строку в CSV → перезапустил → обновилось только изменённое.
  *
@@ -229,6 +232,7 @@ interface TeamDoc {
 interface PlayerDoc {
   _id: string;
   name: string;
+  isArchived?: boolean;
 }
 
 interface ExistingMatch {
@@ -276,8 +280,10 @@ async function run() {
   const teams = await client.fetch<TeamDoc[]>(
     `*[_type == "team"]{ _id, name, short, isOwn }`,
   );
+  // Архивных игроков берём тоже: они играли в прошедших матчах, и события
+  // исторических туров должны привязываться к их профилям.
   const players = await client.fetch<PlayerDoc[]>(
-    `*[_type == "player" && !(isArchived == true)]{ _id, name }`,
+    `*[_type == "player"]{ _id, name, isArchived }`,
   );
   const existingMatches = await client.fetch<ExistingMatch[]>(
     `*[_type == "match"]{ _id, date, "h": home._ref, "a": away._ref }`,
@@ -315,6 +321,7 @@ async function run() {
   const tx = client.transaction();
   const warnings: string[] = [];
   const unmatchedPlayers = new Set<string>();
+  const archivedPlayers = new Set<string>();
   const newTeams: TeamDoc[] = [];
   let planned = 0;
   let skipped = 0;
@@ -341,7 +348,7 @@ async function run() {
       const found = teamByName.get(norm(name));
       if (found) return found;
       if (!CREATE_TEAMS) return null;
-      const id = `team.${slugify(name)}`;
+      const id = `team-${slugify(name)}`;
       const created: TeamDoc = { _id: id, name, short: makeShort(name) };
       teamByName.set(norm(name), created);
       newTeams.push(created);
@@ -435,6 +442,7 @@ async function run() {
         const p = playerByName.get(norm(e.player));
         if (p && !ambiguousPlayers.has(norm(e.player))) {
           ev.player = { _type: "reference", _ref: p._id };
+          if (p.isArchived) archivedPlayers.add(p.name.trim());
         } else {
           ev.playerName = e.player;
           if (!p) unmatchedPlayers.add(e.player);
@@ -493,7 +501,7 @@ async function run() {
         minskDay(m.date) === row.date.trim(),
     );
 
-    const id = existing?._id ?? `match.import.${slugify(key)}`;
+    const id = existing?._id ?? `match-import-${slugify(key)}`;
     const isUpdate = !!existing;
 
     const doc: Record<string, unknown> = {
@@ -565,6 +573,13 @@ async function run() {
     for (const n of unmatchedPlayers) console.log(`    · ${n}`);
     console.log("    Статистика на /player/[slug] по ним не соберётся.");
     console.log("    Проверь написание имени или заведи игрока в Studio и перезапусти.");
+    console.log("");
+  }
+
+  if (archivedPlayers.size) {
+    console.log(`  · Привязаны архивные игроки (${archivedPlayers.size}):`);
+    for (const n of archivedPlayers) console.log(`      ${n}`);
+    console.log("    Гол засчитан профилю, но страницы /player/[slug] у архивных нет.");
     console.log("");
   }
 
