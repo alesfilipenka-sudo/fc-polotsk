@@ -10,6 +10,7 @@ import {
 } from "@/lib/queries";
 import { formatMatchDate, formatMatchTime, formatShortDate } from "@/lib/dateFormat";
 import { getPolotskResult } from "@/lib/matchWindow";
+import { StandingsTabs, type StandingsTable } from "../StandingsTabs";
 
 interface TeamRef {
   name?: string;
@@ -53,16 +54,7 @@ interface FinishedMatch {
   away?: TeamRef;
   scorers?: Scorer[];
 }
-interface StandingsRow {
-  pos: number;
-  mp: number;
-  pts: number;
-  team?: TeamRef;
-}
-interface Standings {
-  season?: string;
-  rows?: StandingsRow[];
-}
+
 
 function resultMark(m: RecentMatch): "W" | "L" | "D" | null {
   if (m.hs == null || m.as == null) return null;
@@ -206,14 +198,14 @@ function PostMatchCard({ match }: { match: FinishedMatch }) {
 export async function MatchCenter() {
   const [recent, standings, lastMatch, nextMatchData] = await Promise.all([
     sanityFetch<RecentMatch[]>(RECENT_MATCHES_QUERY),
-    sanityFetch<Standings | null>(STANDINGS_QUERY),
+    sanityFetch<StandingsTable[]>(STANDINGS_QUERY),
     sanityFetch<FinishedMatch | null>(LAST_FINISHED_MATCH_QUERY),
     sanityFetch<NextMatch | null>(NEXT_MATCH_QUERY),
   ]);
 
   const next = nextMatchData ?? null;
   const recentList = recent ?? [];
-  const standingsRows = standings?.rows ?? [];
+  const standingsTables = standings ?? [];
   const showPostMatch = !!lastMatch;
   const showNext = !!next;
 
@@ -358,42 +350,7 @@ export async function MatchCenter() {
               </ul>
             </div>
 
-            <div className="rounded-2xl bg-ink p-6 text-white">
-              <p className="mb-4 text-xs font-semibold uppercase tracking-eyebrow text-white/60">
-                Турнирная таблица
-              </p>
-              <ul className="space-y-1">
-                {(standingsRows.length > 0
-                  ? standingsRows
-                  : (Array.from({ length: 5 }, () => null) as null[])
-                ).map((row, i) => {
-                  if (!row) {
-                    return (
-                      <li key={`ph-s-${i}`} className="grid grid-cols-12 items-center gap-3 rounded-lg px-3 py-2 text-sm">
-                        <span className="col-span-1 font-display tabular-nums text-white/80">{i + 1}</span>
-                        <span className="col-span-7 truncate">Команда {i + 1}</span>
-                        <span className="col-span-2 text-right text-white/60">—</span>
-                        <span className="col-span-2 text-right font-display tabular-nums">—</span>
-                      </li>
-                    );
-                  }
-                  return (
-                    <li
-                      key={`s-${row.pos}-${row.team?.name ?? "x"}`}
-                      className={`grid grid-cols-12 items-center gap-2 rounded-lg px-3 py-2 text-sm ${row.team?.isOwn ? "bg-polotsk-500" : ""}`}
-                    >
-                      <span className="col-span-1 font-display tabular-nums text-white/80">{row.pos}</span>
-                      <span className="col-span-2 flex items-center justify-center">
-                        {row.team?.logo ? <img src={row.team.logo} alt="" className="h-5 w-5 object-contain" /> : null}
-                      </span>
-                      <span className="col-span-5 truncate">{row.team?.name ?? "—"}</span>
-                      <span className="col-span-2 text-right text-white/60">{row.mp}</span>
-                      <span className="col-span-2 text-right font-display tabular-nums">{row.pts}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+            <StandingsTabs tables={standingsTables} />
           </div>
         </div>
       </div>

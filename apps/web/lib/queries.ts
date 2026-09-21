@@ -274,10 +274,16 @@ export const LIVE_MATCH_QUERY = `*[_type == "match" && status == "live"] | order
   stats
 }`;
 
-export const STANDINGS_QUERY = `*[_id == "standingsTable"][0]{
+/**
+ * Все турнирные таблицы — по одной на этап, в порядке табов.
+ * Матч-центр показывает их переключателем.
+ */
+export const STANDINGS_QUERY = `*[_type == "standingsTable"] | order(order asc, _createdAt asc){
+  _id,
   season,
   stage,
   isFinal,
+  totalMatches,
   updatedAt,
   rows[]{
     pos,
@@ -300,10 +306,11 @@ export const STANDINGS_QUERY = `*[_id == "standingsTable"][0]{
  * не полностью — так на сайте и появились «28 очков из 13 матчей»
  * вместо реальных 31 из 12.
  */
-export const OWN_STANDING_QUERY = `*[_id == "standingsTable"][0]{
+export const OWN_STANDING_QUERY = `*[_type == "standingsTable" && seasonStats == true] | order(order asc)[0]{
   season,
   stage,
   isFinal,
+  totalMatches,
   updatedAt,
   "rows": rows[]{
     pos,

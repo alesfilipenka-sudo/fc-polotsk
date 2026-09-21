@@ -34,6 +34,7 @@ interface OwnStanding {
   season?: string;
   stage?: string;
   isFinal?: boolean;
+  totalMatches?: number;
   updatedAt?: string;
   rows?: (StandingRow & { isOwn?: boolean })[];
 }
@@ -93,6 +94,10 @@ export async function Results() {
 
   const stageLabel = standing?.stage || LEAGUE.stageLabel;
   const played = stats.mp ?? 0;
+  const totalMatches = standing?.totalMatches || LEAGUE.matches;
+  const maxPoints = standing?.totalMatches
+    ? standing.totalMatches * 3
+    : LEAGUE_MAX_POINTS;
   const goalDiff =
     stats.gf != null && stats.ga != null ? stats.gf - stats.ga : null;
 
@@ -110,14 +115,14 @@ export async function Results() {
     {
       value: hasMatches ? (stats.pts ?? 0) : "—",
       label: "Очки",
-      sub: `из ${LEAGUE_MAX_POINTS} возможных`,
+      sub: `из ${maxPoints} возможных`,
     },
     {
       value: hasMatches
         ? `${stats.w ?? 0}-${stats.d ?? 0}-${stats.l ?? 0}`
         : "—",
       label: "В · Н · П",
-      sub: `${played} из ${LEAGUE.matches} матчей`,
+      sub: `${played} из ${totalMatches} матчей`,
       compact: true,
     },
     {
