@@ -15,21 +15,23 @@
     "backfill:finishedAt": "tsx scripts/backfill-finished-at.ts",
     "unset:next-match": "tsx scripts/unset-next-match.ts",
     "seed:history": "tsx scripts/seed-history.ts",
-    "backfill:player-slugs": "tsx scripts/backfill-player-slugs.ts"
+    "backfill:player-slugs": "tsx scripts/backfill-player-slugs.ts",
+    "import:matches": "tsx scripts/import-matches.ts",
+    "seed:standings": "tsx scripts/seed-standings.ts"
   },
   "dependencies": {
     "@sanity/icons": "^3.5.0",
     "@sanity/image-url": "^1.1.0",
     "@sanity/vision": "^4.0.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "sanity": "^4.0.0",
     "styled-components": "^6.1.15"
   },
   "devDependencies": {
     "@sanity/client": "^6.22.5",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "dotenv": "^16.4.7",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"

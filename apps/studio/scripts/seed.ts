@@ -38,7 +38,14 @@ const client = createClient({
 
 // ─── Teams ────────────────────────────────────────────────────────────────
 
-const TEAMS = [
+// Тип задан явно: без него TS выводит объединение «с isOwn» и «без isOwn»,
+// и createOrReplace отказывается принимать такой union.
+const TEAMS: Array<{
+  _id: string;
+  name: string;
+  short: string;
+  isOwn?: boolean;
+}> = [
   { _id: "team-polotsk", name: "ФК Полоцк", short: "ПОЛ", isOwn: true },
   { _id: "team-brest", name: "Динамо-Брест", short: "БРЕ" },
   { _id: "team-minsk", name: "Динамо-Минск", short: "МИН" },
