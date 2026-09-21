@@ -33,10 +33,8 @@ export function EraRail({ eras, activeIndex, onJump }: EraRailProps) {
                     active
                       ? {
                           background: tone.accent,
-                          color:
-                            tone.tone === "current" || tone.bg === "#003399"
-                              ? "white"
-                              : "white",
+                          // Все accent-цвета достаточно тёмные для белого текста.
+                          color: "white",
                         }
                       : {
                           background: tone.chip,
