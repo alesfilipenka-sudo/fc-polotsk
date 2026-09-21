@@ -285,9 +285,20 @@ async function run() {
   const players = await client.fetch<PlayerDoc[]>(
     `*[_type == "player"]{ _id, name, isArchived }`,
   );
-  const existingMatches = await client.fetch<ExistingMatch[]>(
+  const allMatchDocs = await client.fetch<ExistingMatch[]>(
     `*[_type == "match"]{ _id, date, "h": home._ref, "a": away._ref }`,
   );
+
+  // Sanity считает опубликованным только документ, в _id которого нет точки.
+  // Всё остальное видно по токену, но скрыто от анонимных запросов и никогда
+  // не попадает на сайт. Поэтому:
+  //   · при поиске «уже заведённых» такие документы не учитываем,
+  //   · собственные артефакты прошлых прогонов (match.import.*) удаляем,
+  //   · настоящие черновики Studio (drafts.*) не трогаем.
+  const existingMatches = allMatchDocs.filter((m) => !m._id.includes("."));
+  const brokenIds = allMatchDocs
+    .filter((m) => m._id.startsWith("match.import."))
+    .map((m) => m._id);
 
   const teamByName = new Map<string, TeamDoc>();
   for (const t of teams) {
@@ -319,9 +330,22 @@ async function run() {
   // --- Подготовка транзакции ---------------------------------------
 
   const tx = client.transaction();
+
+  if (brokenIds.length) {
+    console.log("");
+    console.log(`  Удаляю непубликуемые документы прошлых прогонов (${brokenIds.length}):`);
+    for (const id of brokenIds) {
+      console.log(`      ${id}`);
+      tx.delete(id);
+    }
+    console.log("");
+  }
+
   const warnings: string[] = [];
   const unmatchedPlayers = new Set<string>();
   const archivedPlayers = new Set<string>();
+  /** _id документов, которые создаём заново — после коммита проверяем их наличие. */
+  const createdIds: string[] = [];
   const newTeams: TeamDoc[] = [];
   let planned = 0;
   let skipped = 0;
@@ -545,8 +569,10 @@ async function run() {
         return unset.length ? patched.unset(unset) : patched;
       });
     } else {
-      tx.createIfNotExists({ _id: id, _type: "match", ...doc });
-      tx.patch(id, (p) => p.set(doc));
+      // createOrReplace, а не createIfNotExists + patch: одна мутация вместо
+      // двух, и документ гарантированно оказывается ровно таким, как в CSV.
+      tx.createOrReplace({ _id: id, _type: "match", ...doc });
+      createdIds.push(id);
     }
 
     planned++;
@@ -598,7 +624,7 @@ async function run() {
     return;
   }
 
-  if (planned === 0) {
+  if (planned === 0 && brokenIds.length === 0) {
     console.log("  Нечего записывать.");
     return;
   }
@@ -607,6 +633,26 @@ async function run() {
   console.log("");
   console.log(`✓ Транзакция закоммичена: ${result.transactionId}`);
   console.log(`  Матчей записано: ${planned}`);
+
+  // Проверка: коммит без ошибки ещё не значит, что документы видны.
+  // Перечитываем созданные id и сверяем.
+  if (createdIds.length) {
+    const found = await client.fetch<string[]>(
+      `*[_type == "match" && _id in $ids]._id`,
+      { ids: createdIds },
+    );
+    const missing = createdIds.filter((id) => !found.includes(id));
+    console.log("");
+    if (missing.length === 0) {
+      console.log(`  ✓ Новые документы на месте (${createdIds.length}):`);
+      for (const id of createdIds) console.log(`      ${id}`);
+    } else {
+      console.log(`  ✗ Созданы, но не читаются (${missing.length}):`);
+      for (const id of missing) console.log(`      ${id}`);
+      console.log("    Проверь _id: точки и другие спецсимволы Sanity не любит.");
+      process.exitCode = 1;
+    }
+  }
 }
 
 run().catch((err) => {
