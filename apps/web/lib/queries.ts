@@ -276,12 +276,45 @@ export const LIVE_MATCH_QUERY = `*[_type == "match" && status == "live"] | order
 
 export const STANDINGS_QUERY = `*[_id == "standingsTable"][0]{
   season,
+  stage,
+  isFinal,
   updatedAt,
   rows[]{
     pos,
     mp,
+    w,
+    d,
+    l,
+    gf,
+    ga,
     pts,
     "team": team->{name, short, "logo": logo.asset->url, isOwn}
+  }
+}`;
+
+/**
+ * Строка ФК Полоцк из турнирной таблицы + метаданные таблицы.
+ *
+ * Используется блоком статистики на главной. Считать очки суммой матчей
+ * нельзя: в базе лежат и кубковые игры, и лиговые могут быть заведены
+ * не полностью — так на сайте и появились «28 очков из 13 матчей»
+ * вместо реальных 31 из 12.
+ */
+export const OWN_STANDING_QUERY = `*[_id == "standingsTable"][0]{
+  season,
+  stage,
+  isFinal,
+  updatedAt,
+  "rows": rows[]{
+    pos,
+    mp,
+    w,
+    d,
+    l,
+    gf,
+    ga,
+    pts,
+    "isOwn": team->isOwn
   }
 }`;
 

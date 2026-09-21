@@ -1,7 +1,13 @@
 import { SectionHeader } from "../SectionHeader";
 import { sanityFetch } from "@/lib/sanity";
-import { RESULTS_QUERY } from "@/lib/queries";
+import { RESULTS_QUERY, OWN_STANDING_QUERY } from "@/lib/queries";
 import { formatShortDate } from "@/lib/dateFormat";
+import {
+  LEAGUE,
+  LEAGUE_MAX_POINTS,
+  isLeagueCompetition,
+  splitCupLabel,
+} from "@/lib/constants";
 
 interface TeamRef {
   name?: string;
@@ -17,6 +23,24 @@ interface MatchDoc {
   as?: number;
   home?: TeamRef;
   away?: TeamRef;
+}
+
+interface StandingRow {
+  pos?: number;
+  mp?: number;
+  w?: number;
+  d?: number;
+  l?: number;
+  gf?: number;
+  ga?: number;
+  pts?: number;
+}
+interface OwnStanding {
+  season?: string;
+  stage?: string;
+  isFinal?: boolean;
+  updatedAt?: string;
+  rows?: (StandingRow & { isOwn?: boolean })[];
 }
 
 const FILTERS = [
@@ -35,28 +59,102 @@ function resultMark(m: MatchDoc): "W" | "L" | "D" | null {
   return "D";
 }
 
-export async function Results() {
-  const matches = (await sanityFetch<MatchDoc[]>(RESULTS_QUERY)) ?? [];
-
-  const stats = matches.reduce(
+/**
+ * Запасной расчёт, когда турнирной таблицы в CMS ещё нет.
+ * Считается ТОЛЬКО по лиговым матчам — кубки в зачёт этапа не идут.
+ */
+function computeLeagueStats(matches: MatchDoc[]): StandingRow {
+  return matches.reduce<StandingRow>(
     (acc, m) => {
       const r = resultMark(m);
-      if (r === "W") acc.wins++;
-      if (m.hs != null && m.as != null) {
-        const polotskHome = m.home?.isOwn;
-        acc.goalsFor += polotskHome ? m.hs : m.as;
-        acc.goalsAgainst += polotskHome ? m.as : m.hs;
-      }
-      acc.points += r === "W" ? 3 : r === "D" ? 1 : 0;
+      if (m.hs == null || m.as == null) return acc;
+      const polotskHome = m.home?.isOwn;
+      acc.mp = (acc.mp ?? 0) + 1;
+      acc.gf = (acc.gf ?? 0) + (polotskHome ? m.hs : m.as);
+      acc.ga = (acc.ga ?? 0) + (polotskHome ? m.as : m.hs);
+      if (r === "W") acc.w = (acc.w ?? 0) + 1;
+      if (r === "D") acc.d = (acc.d ?? 0) + 1;
+      if (r === "L") acc.l = (acc.l ?? 0) + 1;
+      acc.pts = (acc.pts ?? 0) + (r === "W" ? 3 : r === "D" ? 1 : 0);
       return acc;
     },
-    { wins: 0, goalsFor: 0, goalsAgainst: 0, points: 0 },
+    { mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 },
   );
+}
+
+/**
+ * Итоговые стадии кубков: для каждого кубка берём самый поздний матч.
+ * "Кубок Беларуси 1/64" + "Кубок Беларуси 1/32" → "Кубок Беларуси — 1/32".
+ */
+function cupSummary(matches: MatchDoc[]): string[] {
+  const latest = new Map<string, { round?: string; date: string }>();
+  for (const m of matches) {
+    if (!m.competition) continue;
+    const { cup, round } = splitCupLabel(m.competition);
+    const prev = latest.get(cup);
+    if (!prev || m.date > prev.date) latest.set(cup, { round, date: m.date });
+  }
+  return [...latest.entries()].map(([cup, v]) =>
+    v.round ? `${cup} — ${v.round}` : cup,
+  );
+}
+
+export async function Results() {
+  const [matchesRaw, standing] = await Promise.all([
+    sanityFetch<MatchDoc[]>(RESULTS_QUERY),
+    sanityFetch<OwnStanding>(OWN_STANDING_QUERY),
+  ]);
+
+  const matches = matchesRaw ?? [];
+  const leagueMatches = matches.filter((m) => isLeagueCompetition(m.competition));
+  const cupMatches = matches.filter((m) => !isLeagueCompetition(m.competition));
+
+  // Таблица — источник истины. Расчёт по матчам только как запасной вариант.
+  const fromTable = standing?.rows?.find((r) => r.isOwn) ?? null;
+  const stats = fromTable ?? computeLeagueStats(leagueMatches);
+  const usingTable = !!fromTable;
+
+  const stageLabel = standing?.stage || LEAGUE.stageLabel;
+  const played = stats.mp ?? 0;
+  const goalDiff =
+    stats.gf != null && stats.ga != null ? stats.gf - stats.ga : null;
 
   const hasMatches = matches.length > 0;
   const rows = hasMatches
     ? matches
     : (Array.from({ length: 4 }, () => null) as null[]);
+
+  const tiles = [
+    {
+      value: usingTable && stats.pos != null ? stats.pos : "—",
+      label: "Место",
+      sub: stageLabel,
+    },
+    {
+      value: hasMatches ? (stats.pts ?? 0) : "—",
+      label: "Очки",
+      sub: `из ${LEAGUE_MAX_POINTS} возможных`,
+    },
+    {
+      value: hasMatches
+        ? `${stats.w ?? 0}-${stats.d ?? 0}-${stats.l ?? 0}`
+        : "—",
+      label: "В · Н · П",
+      sub: `${played} из ${LEAGUE.matches} матчей`,
+      compact: true,
+    },
+    {
+      value: hasMatches ? `${stats.gf ?? 0}:${stats.ga ?? 0}` : "—",
+      label: "Мячи",
+      sub:
+        goalDiff == null
+          ? "забито : пропущено"
+          : `разница ${goalDiff > 0 ? "+" : ""}${goalDiff}`,
+      compact: true,
+    },
+  ];
+
+  const cups = cupSummary(cupMatches);
 
   return (
     <section id="results" className="bg-ink py-14 text-white md:py-20">
@@ -102,7 +200,7 @@ export async function Results() {
                   >
                     <div className="md:grid md:grid-cols-12 md:items-center md:gap-4 text-sm">
                       <p className="text-white/60 md:col-span-2">— апр</p>
-                      <p className="text-white/70 md:col-span-3">Высшая лига</p>
+                      <p className="text-white/70 md:col-span-3">{LEAGUE.prefix}</p>
                       <p className="text-white/80 md:col-span-5 mt-1 md:mt-0">
                         Полоцк — соперник
                       </p>
@@ -136,7 +234,7 @@ export async function Results() {
                       {formatShortDate(m.date)}
                     </p>
                     <p className="text-white/70 md:col-span-3 truncate mt-0.5 md:mt-0">
-                      {m.competition ?? "Высшая лига"}
+                      {m.competition ?? LEAGUE.prefix}
                     </p>
                     <p className="text-white md:col-span-5 truncate mt-1 md:mt-0">
                       {m.home?.name ?? "?"} — {m.away?.name ?? "?"}
@@ -158,19 +256,17 @@ export async function Results() {
           </ul>
         </div>
 
+        {/* Блок статистики — только по региональному этапу. Кубки отдельно. */}
         <div className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-white/10 md:grid-cols-4">
-          {[
-            { value: hasMatches ? stats.points : "—", label: "Очки", sub: "за сезон" },
-            {
-              value: hasMatches ? `${stats.wins}` : "—",
-              label: "Победы",
-              sub: hasMatches ? `из ${matches.length} матчей` : "из — матчей",
-            },
-            { value: hasMatches ? stats.goalsFor : "—", label: "Голы", sub: "забито" },
-            { value: hasMatches ? stats.goalsAgainst : "—", label: "Голы", sub: "пропущено" },
-          ].map((s) => (
-            <div key={s.label + s.sub} className="bg-ink p-5 text-center md:p-6">
-              <p className="font-display text-4xl tabular-nums text-polotsk-300 md:text-6xl">
+          {tiles.map((s) => (
+            <div key={s.label} className="bg-ink p-5 text-center md:p-6">
+              <p
+                className={`font-display tabular-nums text-polotsk-300 ${
+                  s.compact
+                    ? "text-3xl md:text-5xl"
+                    : "text-4xl md:text-6xl"
+                }`}
+              >
                 {s.value}
               </p>
               <p className="mt-2 text-xs font-semibold uppercase tracking-eyebrow text-white">
@@ -181,6 +277,17 @@ export async function Results() {
               </p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-4 flex flex-col gap-1 text-xs text-white/40 md:flex-row md:items-center md:justify-between">
+          <p>
+            {usingTable
+              ? `${standing?.isFinal ? "Итоговая таблица" : "Турнирная таблица"} · ${stageLabel}${
+                  standing?.season ? ` · ${standing.season}` : ""
+                }`
+              : "По сыгранным матчам лиги — турнирная таблица в CMS не заполнена"}
+          </p>
+          {cups.length > 0 && <p>{cups.join(" · ")}</p>}
         </div>
       </div>
     </section>
