@@ -2,8 +2,10 @@ import { defineType, defineField, defineArrayMember } from "sanity";
 import { ChartUpwardIcon } from "@sanity/icons";
 
 /**
- * Singleton: одна турнирная таблица за сезон. Редактор обновляет
- * один документ раз в неделю, а не 16 отдельных Standing-документов.
+ * Турнирная таблица одного этапа. Документов может быть несколько —
+ * например «Витебский дивизион» (региональный этап) и «Финальный этап,
+ * группа B». На сайте они показываются табами в матч-центре, порядок
+ * задаёт `order`.
  *
  * Строка таблицы — источник истины для блока статистики на главной.
  * Считать очки суммированием матчей нельзя: в базе лежат ещё и кубковые
@@ -33,10 +35,33 @@ export const standingsTable = defineType({
     defineField({
       name: "isFinal",
       title: "Таблица итоговая",
-      description:
-        "Включи, когда этап сыгран до конца — на сайте подпись сменится на «итоговая таблица».",
+      description: "Включи, когда этап сыгран до конца.",
       type: "boolean",
       initialValue: false,
+    }),
+    defineField({
+      name: "order",
+      title: "Порядок таба",
+      description: "Чем меньше, тем левее таб в матч-центре.",
+      type: "number",
+      initialValue: 0,
+      validation: (r) => r.integer(),
+    }),
+    defineField({
+      name: "seasonStats",
+      title: "Источник блока статистики",
+      description:
+        "Ровно у одной таблицы. Её строка ФК Полоцк питает блок «Место / Очки / В·Н·П / Мячи» внизу главной.",
+      type: "boolean",
+      initialValue: false,
+    }),
+    defineField({
+      name: "totalMatches",
+      title: "Матчей в этапе",
+      description:
+        "Сколько игр проводит каждая команда. Нужно для подписи «из N возможных очков».",
+      type: "number",
+      validation: (r) => r.integer().min(1).max(50),
     }),
     defineField({
       name: "updatedAt",
@@ -132,11 +157,20 @@ export const standingsTable = defineType({
       validation: (r) => r.max(20),
     }),
   ],
+  orderings: [
+    {
+      title: "Порядок таба",
+      name: "orderAsc",
+      by: [{ field: "order", direction: "asc" }],
+    },
+  ],
   preview: {
-    select: { season: "season", stage: "stage" },
-    prepare: ({ season, stage }) => ({
-      title: "Турнирная таблица",
-      subtitle: [stage, season].filter(Boolean).join(" · "),
+    select: { season: "season", stage: "stage", seasonStats: "seasonStats" },
+    prepare: ({ season, stage, seasonStats }) => ({
+      title: stage || "Турнирная таблица",
+      subtitle: [season, seasonStats ? "блок статистики" : null]
+        .filter(Boolean)
+        .join(" · "),
     }),
   },
 });

@@ -13,8 +13,8 @@ import {
 /**
  * Custom desk structure.
  *
- * - `siteSettings` and `standingsTable` are singletons — surfaced at the top
- *   level so editors don't need to think about creating duplicates.
+ * - `siteSettings` — singleton, вынесен наверх, чтобы редактор не плодил копии.
+ * - `standingsTable` — по документу на этап (региональный, финальный).
  * - Lists are grouped under categories (Squad, Matches, Content, History) for clarity.
  */
 export const structure: StructureResolver = (S) =>
@@ -28,14 +28,11 @@ export const structure: StructureResolver = (S) =>
         .child(
           S.document().schemaType("siteSettings").documentId("siteSettings"),
         ),
-      S.listItem()
-        .title("Standings Table")
-        .icon(ChartUpwardIcon)
-        .child(
-          S.document()
-            .schemaType("standingsTable")
-            .documentId("standingsTable"),
-        ),
+      // Таблиц несколько — по одной на этап (региональный, финальный).
+      // Порядок табов на сайте задаёт поле `order`.
+      S.documentTypeListItem("standingsTable")
+        .title("Турнирные таблицы")
+        .icon(ChartUpwardIcon),
 
       S.divider(),
 

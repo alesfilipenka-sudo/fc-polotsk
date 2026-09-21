@@ -1,15 +1,21 @@
 /**
- * FC Polotsk — заливка итоговой таблицы регионального этапа Второй лиги 2026.
+ * FC Polotsk — заливка турнирных таблиц.
  *
- * Зачем отдельный скрипт: блок статистики на главной теперь читает строку
- * ФК Полоцк из турнирной таблицы, а не суммирует матчи (в базе лежат ещё и
- * кубковые игры, из-за чего получалось «28 очков из 13 матчей» вместо 31 из 12).
+ * Таблиц несколько, по документу на этап: региональный (Витебский дивизион,
+ * сыгран) и финальный (группа B, идёт). На сайте они переключаются табами
+ * в матч-центре, порядок задаёт поле `order`.
+ *
+ * Блок статистики внизу главной читает ту таблицу, у которой `seasonStats`,
+ * — сейчас это региональный этап как итог сезона.
  *
  * Запуск:
  *   pnpm --filter @fc-polotsk/studio seed:standings            # сухой прогон
  *   pnpm --filter @fc-polotsk/studio seed:standings -- --apply # запись
  *
- * Идемпотентный: перезаписывает singleton `standingsTable` целиком.
+ * Идемпотентный: документы перезаписываются по детерминированным _id.
+ * Команды ищутся по названию или короткому коду — те, которых ещё нет,
+ * создаёт импортёр матчей (`import:matches -- --create-teams`), поэтому
+ * его запускают первым.
  *
  * Требует .env.local: SANITY_STUDIO_PROJECT_ID, SANITY_STUDIO_DATASET,
  * SANITY_STUDIO_WRITE_TOKEN.
@@ -39,24 +45,58 @@ const client = createClient({
 
 const APPLY = process.argv.includes("--apply");
 
-const SEASON = "2026";
-const STAGE = "Витебский дивизион";
-const IS_FINAL = true;
+/** pos · команда (название или short) · И · В · Н · П · забито · пропущено · очки */
+type Row = [number, string, number, number, number, number, number, number, number];
 
-/**
- * Итоговая таблица регионального этапа. Команды указаны короткими кодами —
- * скрипт находит документы `team` по полю `short`.
- *
- * pos · short · И · В · Н · П · забито · пропущено · очки
- */
-const ROWS: Array<[number, string, number, number, number, number, number, number, number]> = [
-  [1, "МИО", 12, 11, 0, 1, 36, 10, 33],
-  [2, "ПОЛ", 12, 10, 1, 1, 53, 14, 31],
-  [3, "ГАЗ", 12, 7, 1, 4, 26, 16, 22],
-  [4, "ПСТ", 12, 5, 1, 6, 26, 26, 16],
-  [5, "СЕН", 12, 3, 2, 7, 19, 33, 11],
-  [6, "ГОР", 12, 2, 0, 10, 13, 38, 6],
-  [7, "ОРШ", 12, 1, 1, 10, 4, 40, 4],
+interface TableSpec {
+  id: string;
+  season: string;
+  stage: string;
+  order: number;
+  isFinal: boolean;
+  seasonStats: boolean;
+  totalMatches: number;
+  rows: Row[];
+}
+
+const TABLES: TableSpec[] = [
+  {
+    // Оставляем прежний _id: документ уже есть в базе, менять его незачем.
+    id: "standingsTable",
+    season: "2026",
+    stage: "Витебский дивизион",
+    order: 0,
+    isFinal: true,
+    seasonStats: true,
+    totalMatches: 12,
+    rows: [
+      [1, "МИО", 12, 11, 0, 1, 36, 10, 33],
+      [2, "ПОЛ", 12, 10, 1, 1, 53, 14, 31],
+      [3, "ГАЗ", 12, 7, 1, 4, 26, 16, 22],
+      [4, "ПСТ", 12, 5, 1, 6, 26, 26, 16],
+      [5, "СЕН", 12, 3, 2, 7, 19, 33, 11],
+      [6, "ГОР", 12, 2, 0, 10, 13, 38, 6],
+      [7, "ОРШ", 12, 1, 1, 10, 4, 40, 4],
+    ],
+  },
+  {
+    id: "standings-final-2026-b",
+    season: "2026",
+    stage: "Финальный этап, группа B",
+    order: 1,
+    isFinal: false,
+    seasonStats: false,
+    // 6 команд, два круга.
+    totalMatches: 10,
+    rows: [
+      [1, "Торпедо-БелАЗ-2", 3, 3, 0, 0, 9, 3, 9],
+      [2, "МЛ Витебск-2", 3, 2, 1, 0, 5, 2, 7],
+      [3, "БГУ", 3, 1, 1, 1, 5, 5, 4],
+      [4, "ПОЛ", 3, 1, 0, 2, 6, 8, 3],
+      [5, "Друть", 3, 0, 1, 2, 2, 4, 1],
+      [6, "ГАЗ", 3, 0, 1, 2, 0, 5, 1],
+    ],
+  },
 ];
 
 interface TeamDoc {
@@ -64,6 +104,9 @@ interface TeamDoc {
   name: string;
   short?: string;
 }
+
+const norm = (s: string) =>
+  s.toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim();
 
 async function run() {
   console.log(
@@ -73,55 +116,72 @@ async function run() {
   const teams = await client.fetch<TeamDoc[]>(
     `*[_type == "team"]{ _id, name, short }`,
   );
-  const byShort = new Map(
-    teams.filter((t) => t.short).map((t) => [t.short!.toUpperCase(), t]),
-  );
-
-  // Сходимость: забитые по лиге должны равняться пропущенным.
-  const gf = ROWS.reduce((s, r) => s + r[6], 0);
-  const ga = ROWS.reduce((s, r) => s + r[7], 0);
-  if (gf !== ga) {
-    console.log(`  ⚠ Забито ${gf} ≠ пропущено ${ga} — проверь таблицу`);
-  } else {
-    console.log(`  ✓ Баланс мячей сходится: ${gf}`);
+  const index = new Map<string, TeamDoc>();
+  for (const t of teams) {
+    index.set(norm(t.name), t);
+    if (t.short) index.set(norm(t.short), t);
   }
 
-  const rows = ROWS.map(([pos, short, mp, w, d, l, f, a, pts]) => {
-    const team = byShort.get(short.toUpperCase());
-    if (!team) throw new Error(`Не найдена команда с short="${short}"`);
-    if (w + d + l !== mp) {
-      console.log(`  ⚠ ${team.name}: ${w}+${d}+${l} ≠ ${mp} матчей`);
+  const docs = TABLES.map((spec) => {
+    console.log("");
+    console.log(`  ▸ ${spec.stage} (${spec.season})${spec.seasonStats ? "  ← блок статистики" : ""}`);
+
+    const gf = spec.rows.reduce((s, r) => s + r[6], 0);
+    const ga = spec.rows.reduce((s, r) => s + r[7], 0);
+    if (gf !== ga) {
+      console.log(`    ⚠ забито ${gf} ≠ пропущено ${ga} — проверь таблицу`);
+    } else {
+      console.log(`    ✓ баланс мячей сходится: ${gf}`);
     }
-    if (w * 3 + d !== pts) {
-      console.log(`  ⚠ ${team.name}: ${w}×3+${d} ≠ ${pts} очков`);
-    }
-    console.log(
-      `  ${pos}. ${team.name.padEnd(22)} ${mp}  ${w}-${d}-${l}  ${f}:${a}  ${pts}`,
-    );
+
+    const rows = spec.rows.map(([pos, key, mp, w, d, l, f, a, pts]) => {
+      const team = index.get(norm(key));
+      if (!team) {
+        throw new Error(
+          `Не найдена команда "${key}". Сначала прогони import:matches -- --create-teams`,
+        );
+      }
+      if (w + d + l !== mp) console.log(`    ⚠ ${team.name}: ${w}+${d}+${l} ≠ ${mp}`);
+      if (w * 3 + d !== pts) console.log(`    ⚠ ${team.name}: ${w}×3+${d} ≠ ${pts}`);
+      console.log(
+        `    ${pos}. ${team.name.padEnd(22)} ${mp}  ${w}-${d}-${l}  ${f}:${a}  ${pts}`,
+      );
+      return {
+        _key: `row-${pos}`,
+        _type: "row",
+        pos,
+        team: { _type: "reference", _ref: team._id },
+        mp,
+        w,
+        d,
+        l,
+        gf: f,
+        ga: a,
+        pts,
+      };
+    });
+
     return {
-      _key: `row-${pos}`,
-      _type: "row",
-      pos,
-      team: { _type: "reference", _ref: team._id },
-      mp,
-      w,
-      d,
-      l,
-      gf: f,
-      ga: a,
-      pts,
+      _id: spec.id,
+      _type: "standingsTable",
+      season: spec.season,
+      stage: spec.stage,
+      order: spec.order,
+      isFinal: spec.isFinal,
+      seasonStats: spec.seasonStats,
+      totalMatches: spec.totalMatches,
+      updatedAt: new Date().toISOString(),
+      rows,
     };
   });
 
-  const doc = {
-    _id: "standingsTable",
-    _type: "standingsTable",
-    season: SEASON,
-    stage: STAGE,
-    isFinal: IS_FINAL,
-    updatedAt: new Date().toISOString(),
-    rows,
-  };
+  const statsTables = TABLES.filter((t) => t.seasonStats);
+  if (statsTables.length !== 1) {
+    console.log("");
+    console.log(
+      `  ⚠ Флаг «источник блока статистики» стоит у ${statsTables.length} таблиц — должен ровно у одной.`,
+    );
+  }
 
   if (!APPLY) {
     console.log("");
@@ -130,9 +190,13 @@ async function run() {
     return;
   }
 
-  await client.createOrReplace(doc);
+  const tx = client.transaction();
+  for (const doc of docs) tx.createOrReplace(doc);
+  await tx.commit();
+
   console.log("");
-  console.log(`✓ Таблица записана: ${STAGE} ${SEASON}, строк ${rows.length}`);
+  console.log(`✓ Записано таблиц: ${docs.length}`);
+  for (const d of docs) console.log(`      ${d._id} — ${d.stage}`);
 }
 
 run().catch((err) => {
