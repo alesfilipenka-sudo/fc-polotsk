@@ -44,6 +44,7 @@ const client = createClient({
 });
 
 const APPLY = process.argv.includes("--apply");
+const FETCH = process.argv.includes("--fetch");
 
 /** pos · команда (название или short) · И · В · Н · П · забито · пропущено · очки */
 type Row = [number, string, number, number, number, number, number, number, number];
@@ -56,6 +57,8 @@ interface TableSpec {
   isFinal: boolean;
   seasonStats: boolean;
   totalMatches: number;
+  /** Откуда тянуть таблицу по флагу --fetch. Без него берутся `rows` ниже. */
+  source?: { url: string; group: string };
   rows: Row[];
 }
 
@@ -88,6 +91,10 @@ const TABLES: TableSpec[] = [
     seasonStats: false,
     // 6 команд, два круга.
     totalMatches: 10,
+    source: {
+      url: "https://bel.football/tournaments/vtoraya-liga/standings",
+      group: "Группа B",
+    },
     rows: [
       // После 4 тура. Полоцку засчитана техническая победа 3:0 над «Газовиком».
       [1, "Торпедо-БелАЗ-2", 4, 4, 0, 0, 11, 3, 12],
@@ -100,6 +107,92 @@ const TABLES: TableSpec[] = [
   },
 ];
 
+/**
+ * Названия команд у источника не всегда совпадают с нашими. Здесь только
+ * расхождения — остальное сходится по названию или короткому коду.
+ */
+const SOURCE_ALIASES: Record<string, string> = {
+  "полоцк-2019": "ПОЛ",
+};
+
+interface SourceRow {
+  position: number;
+  team: string;
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  points: number;
+}
+
+/**
+ * Забирает таблицу одной группы со страницы турнира.
+ *
+ * Страница собрана на Next.js, все данные лежат в <script id="__NEXT_DATA__">,
+ * поэтому хватает обычного fetch без headless-браузера. Если структура
+ * страницы поменяется, разбор упадёт — и мы ничего не запишем, что лучше,
+ * чем затереть таблицу мусором.
+ */
+async function fetchGroupRows(url: string, group: string): Promise<Row[]> {
+  console.log(`    ↓ ${url} — «${group}»`);
+
+  const res = await fetch(url, {
+    headers: {
+      "user-agent": "fcpolotsk.by standings import (single manual run)",
+      accept: "text/html",
+    },
+  });
+  if (!res.ok) throw new Error(`Источник ответил ${res.status} ${res.statusText}`);
+
+  const html = await res.text();
+  const m = html.match(
+    /<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/,
+  );
+  if (!m) throw new Error("Не нашёл __NEXT_DATA__ — страница изменилась");
+
+  let groups: Array<{ label?: string; rows?: SourceRow[] }>;
+  try {
+    const data = JSON.parse(m[1]);
+    groups = data?.props?.pageProps?.tournamentStandingGroups;
+  } catch {
+    throw new Error("__NEXT_DATA__ не разобрался как JSON");
+  }
+  if (!Array.isArray(groups)) {
+    throw new Error("В данных страницы нет tournamentStandingGroups");
+  }
+
+  const found = groups.find((g) => g.label === group);
+  if (!found || !Array.isArray(found.rows) || found.rows.length === 0) {
+    const labels = groups.map((g) => g.label).join(", ");
+    throw new Error(`Группа «${group}» не найдена. Есть: ${labels}`);
+  }
+
+  const num = (v: unknown, field: string, team: string): number => {
+    if (typeof v !== "number" || !Number.isFinite(v)) {
+      throw new Error(`У «${team}» поле ${field} не число: ${JSON.stringify(v)}`);
+    }
+    return v;
+  };
+
+  return found.rows.map((r): Row => {
+    const team = String(r.team ?? "?");
+    const key = SOURCE_ALIASES[team.toLowerCase()] ?? team;
+    return [
+      num(r.position, "position", team),
+      key,
+      num(r.played, "played", team),
+      num(r.wins, "wins", team),
+      num(r.draws, "draws", team),
+      num(r.losses, "losses", team),
+      num(r.goalsFor, "goalsFor", team),
+      num(r.goalsAgainst, "goalsAgainst", team),
+      num(r.points, "points", team),
+    ];
+  });
+}
+
 interface TeamDoc {
   _id: string;
   name: string;
@@ -111,7 +204,8 @@ const norm = (s: string) =>
 
 async function run() {
   console.log(
-    `[seed-standings] dataset="${dataset}"  режим=${APPLY ? "ЗАПИСЬ" : "сухой прогон"}`,
+    `[seed-standings] dataset="${dataset}"  режим=${APPLY ? "ЗАПИСЬ" : "сухой прогон"}` +
+      `${FETCH ? "  источник=bel.football" : "  источник=скрипт"}`,
   );
 
   const teams = await client.fetch<TeamDoc[]>(
@@ -123,19 +217,29 @@ async function run() {
     if (t.short) index.set(norm(t.short), t);
   }
 
-  const docs = TABLES.map((spec) => {
+  const docs: Record<string, unknown>[] = [];
+
+  for (const spec of TABLES) {
     console.log("");
     console.log(`  ▸ ${spec.stage} (${spec.season})${spec.seasonStats ? "  ← блок статистики" : ""}`);
 
-    const gf = spec.rows.reduce((s, r) => s + r[6], 0);
-    const ga = spec.rows.reduce((s, r) => s + r[7], 0);
+    let specRows = spec.rows;
+    if (FETCH && spec.source) {
+      specRows = await fetchGroupRows(spec.source.url, spec.source.group);
+      console.log(`    ✓ снято со страницы турнира: строк ${specRows.length}`);
+    } else if (FETCH) {
+      console.log("    · источника нет — беру цифры из скрипта");
+    }
+
+    const gf = specRows.reduce((s, r) => s + r[6], 0);
+    const ga = specRows.reduce((s, r) => s + r[7], 0);
     if (gf !== ga) {
       console.log(`    ⚠ забито ${gf} ≠ пропущено ${ga} — проверь таблицу`);
     } else {
       console.log(`    ✓ баланс мячей сходится: ${gf}`);
     }
 
-    const rows = spec.rows.map(([pos, key, mp, w, d, l, f, a, pts]) => {
+    const rows = specRows.map(([pos, key, mp, w, d, l, f, a, pts]) => {
       const team = index.get(norm(key));
       if (!team) {
         throw new Error(
@@ -162,7 +266,7 @@ async function run() {
       };
     });
 
-    return {
+    docs.push({
       _id: spec.id,
       _type: "standingsTable",
       season: spec.season,
@@ -173,8 +277,8 @@ async function run() {
       totalMatches: spec.totalMatches,
       updatedAt: new Date().toISOString(),
       rows,
-    };
-  });
+    });
+  }
 
   const statsTables = TABLES.filter((t) => t.seasonStats);
   if (statsTables.length !== 1) {
@@ -192,7 +296,7 @@ async function run() {
   }
 
   const tx = client.transaction();
-  for (const doc of docs) tx.createOrReplace(doc);
+  for (const doc of docs) tx.createOrReplace(doc as never);
   await tx.commit();
 
   console.log("");
