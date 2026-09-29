@@ -71,7 +71,7 @@ export const NAV: readonly NavItem[] = [
   { href: "/#team", label: "Команда" },
   { href: "/history", label: "История" },
   { href: "/#social", label: "Соцсети" },
-  { href: "/#results", label: "Результаты" },
+  { href: "/results", label: "Результаты" },
 ] as const;
 
 export const POS_LABEL: Record<Position, string> = {

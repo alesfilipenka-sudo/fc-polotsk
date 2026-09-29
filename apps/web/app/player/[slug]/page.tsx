@@ -116,6 +116,13 @@ export default async function PlayerRoute({ params }: PageProps) {
       />
       <Header />
       <main className="flex-1">
+        {player.isArchived && (
+          <div className="bg-slate-100 py-3">
+            <p className="mx-auto max-w-7xl px-5 text-xs uppercase tracking-eyebrow text-slate-500 md:px-8">
+              Игрок не выступает за клуб в текущем сезоне
+            </p>
+          </div>
+        )}
         <PlayerPage player={player as PlayerDetail} stats={stats} />
       </main>
       <Footer />

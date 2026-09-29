@@ -1,8 +1,12 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { SectionHeader } from "../SectionHeader";
 import { sanityFetch } from "@/lib/sanity";
 import { RESULTS_QUERY, OWN_STANDING_QUERY } from "@/lib/queries";
 import { formatShortDate } from "@/lib/dateFormat";
-import { LEAGUE, LEAGUE_MAX_POINTS, isLeagueCompetition } from "@/lib/constants";
+import { LEAGUE, LEAGUE_MAX_POINTS } from "@/lib/constants";
+import { competitionLabel, isLeagueMatch } from "@/lib/competition-label";
+import { ExpandableMatch, type ExpandableMatchData } from "../ExpandableMatch";
 import { AwardedBadge } from "../AwardedBadge";
 
 interface TeamRef {
@@ -11,7 +15,7 @@ interface TeamRef {
   logo?: string;
   isOwn?: boolean;
 }
-interface MatchDoc {
+interface MatchDoc extends ExpandableMatchData {
   _id: string;
   date: string;
   competition?: string;
@@ -41,11 +45,8 @@ interface OwnStanding {
   rows?: (StandingRow & { isOwn?: boolean })[];
 }
 
-const FILTERS = [
-  { id: "all", label: "Все" },
-  { id: "home", label: "Дом" },
-  { id: "away", label: "Гости" },
-];
+/** Сколько матчей показывать на главной. Остальное — на /results. */
+const HOME_LIMIT = 5;
 
 function resultMark(m: MatchDoc): "W" | "L" | "D" | null {
   if (m.hs == null || m.as == null) return null;
@@ -87,7 +88,7 @@ export async function Results() {
   ]);
 
   const matches = matchesRaw ?? [];
-  const leagueMatches = matches.filter((m) => isLeagueCompetition(m.competition));
+  const leagueMatches = matches.filter((m) => isLeagueMatch(m));
 
   // Таблица — источник истины. Расчёт по матчам только как запасной вариант.
   const fromTable = standing?.rows?.find((r) => r.isOwn) ?? null;
@@ -105,7 +106,7 @@ export async function Results() {
 
   const hasMatches = matches.length > 0;
   const rows = hasMatches
-    ? matches
+    ? matches.slice(0, HOME_LIMIT)
     : (Array.from({ length: 4 }, () => null) as null[]);
 
   const tiles = [
@@ -146,21 +147,13 @@ export async function Results() {
           title="Результаты"
           dark
           action={
-            <div className="flex gap-2">
-              {FILTERS.map((f, i) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wider transition ${
-                    i === 0
-                      ? "bg-polotsk-500 text-white"
-                      : "border border-white/15 text-white/70 hover:bg-white/5"
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
+            <Link
+              href="/results"
+              className="inline-flex items-center gap-2 rounded-full bg-polotsk-500 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-polotsk-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            >
+              Все результаты
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           }
         />
 
@@ -207,16 +200,14 @@ export async function Results() {
               const letter =
                 r === "W" ? "В" : r === "L" ? "П" : r === "D" ? "Н" : "—";
               return (
-                <li
-                  key={m._id}
-                  className="px-5 py-4 md:px-6"
-                >
+                <li key={m._id}>
+                  <ExpandableMatch match={m} tone="dark">
                   <div className="md:grid md:grid-cols-12 md:items-center md:gap-4 text-sm">
                     <p className="text-white/60 md:col-span-2">
                       {formatShortDate(m.date)}
                     </p>
                     <p className="text-white/70 md:col-span-3 truncate mt-0.5 md:mt-0">
-                      {m.competition ?? LEAGUE.prefix}
+                      {competitionLabel(m) || LEAGUE.prefix}
                     </p>
                     <div className="md:col-span-5 mt-1 flex items-center gap-2 md:mt-0">
                       <p className="truncate text-white">
@@ -235,11 +226,24 @@ export async function Results() {
                       </span>
                     </span>
                   </div>
+                  </ExpandableMatch>
                 </li>
               );
             })}
           </ul>
         </div>
+
+        {matches.length > HOME_LIMIT && (
+          <p className="mt-4 text-center text-xs text-white/50 md:text-right">
+            Показаны последние {HOME_LIMIT} из {matches.length} матчей ·{" "}
+            <Link
+              href="/results"
+              className="text-polotsk-300 underline-offset-2 hover:underline"
+            >
+              весь архив
+            </Link>
+          </p>
+        )}
 
         {/* Блок статистики — только по региональному этапу. Кубки отдельно. */}
         <div className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-white/10 md:grid-cols-4">

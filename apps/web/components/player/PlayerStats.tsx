@@ -158,7 +158,7 @@ export function PlayerStats({ stats, season }: PlayerStatsProps) {
             {stats.contributions.map((m) => (
               <li key={m._id}>
                 <Link
-                  href="/#results"
+                  href="/results"
                   className="flex items-center gap-3 py-3 transition hover:bg-slate-50 md:gap-4"
                 >
                   <span className="w-14 shrink-0 text-[10px] uppercase tracking-eyebrow text-slate-400">

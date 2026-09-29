@@ -27,7 +27,14 @@ export const SQUAD_QUERY = `*[_type == "player" && !(isArchived == true)] | orde
 /**
  * Все игроки — для generateStaticParams в /player/[slug].
  */
-export const ALL_PLAYER_SLUGS_QUERY = `*[_type == "player" && defined(slug.current) && !(isArchived == true)]{
+/**
+ * Все игроки со slug — включая архивных.
+ *
+ * Архивные не показываются в составе, но их страницы нужны: на них ведут
+ * авторы голов из архива матчей. Без этого ссылка из протокола прошлого
+ * сезона упирается в 404.
+ */
+export const ALL_PLAYER_SLUGS_QUERY = `*[_type == "player" && defined(slug.current)]{
   "slug": slug.current
 }`;
 
@@ -88,6 +95,9 @@ export const MATCHES_FOR_STATS_QUERY = `*[_type == "match" && status == "finishe
   _id,
   date,
   competition,
+  "stage": stage,
+  "tournament": tournament->{name, kind, crossYearSeason},
+  "season": season->{year, isCurrent},
   finishedAt,
   hs,
   "as": as,
@@ -175,18 +185,38 @@ export const RECENT_MATCHES_QUERY = `*[_type == "match" && status == "finished"]
   _id,
   date,
   competition,
+  "stage": stage,
+  "tournament": tournament->{name, kind, crossYearSeason},
+  "season": season->{year, isCurrent},
   awarded,
   awardedReason,
   hs,
   "as": as,
   "home": home->{name, short, "logo": logo.asset->url, isOwn},
-  "away": away->{name, short, "logo": logo.asset->url, isOwn}
+  "away": away->{name, short, "logo": logo.asset->url, isOwn},
+  "scorers": scorers[]{
+    minute,
+    forTeam,
+    ownGoal,
+    "name": coalesce(player->name, playerName),
+    "slug": player->slug.current
+  },
+  "cards": events[type == "yellow" || type == "red"]{
+    type,
+    minute,
+    forTeam,
+    "name": coalesce(player->name, playerName),
+    "slug": player->slug.current
+  }
 }`;
 
 export const RESULTS_QUERY = `*[_type == "match" && status == "finished"] | order(date desc){
   _id,
   date,
   competition,
+  "stage": stage,
+  "tournament": tournament->{name, kind, crossYearSeason},
+  "season": season->{year, isCurrent},
   awarded,
   awardedReason,
   tour,
@@ -199,7 +229,15 @@ export const RESULTS_QUERY = `*[_type == "match" && status == "finished"] | orde
     minute,
     forTeam,
     ownGoal,
-    "name": coalesce(player->name, playerName)
+    "name": coalesce(player->name, playerName),
+    "slug": player->slug.current
+  },
+  "cards": events[type == "yellow" || type == "red"]{
+    type,
+    minute,
+    forTeam,
+    "name": coalesce(player->name, playerName),
+    "slug": player->slug.current
   }
 }`;
 
@@ -207,6 +245,9 @@ export const LAST_FINISHED_MATCH_QUERY = `*[_type == "match" && status == "finis
   _id,
   date,
   competition,
+  "stage": stage,
+  "tournament": tournament->{name, kind, crossYearSeason},
+  "season": season->{year, isCurrent},
   awarded,
   awardedReason,
   tour,
@@ -219,7 +260,15 @@ export const LAST_FINISHED_MATCH_QUERY = `*[_type == "match" && status == "finis
     minute,
     forTeam,
     ownGoal,
-    "name": coalesce(player->name, playerName)
+    "name": coalesce(player->name, playerName),
+    "slug": player->slug.current
+  },
+  "cards": events[type == "yellow" || type == "red"]{
+    type,
+    minute,
+    forTeam,
+    "name": coalesce(player->name, playerName),
+    "slug": player->slug.current
   }
 }`;
 
@@ -227,6 +276,9 @@ export const NEXT_MATCH_QUERY = `*[_type == "match" && status == "scheduled" && 
   _id,
   date,
   competition,
+  "stage": stage,
+  "tournament": tournament->{name, kind, crossYearSeason},
+  "season": season->{year, isCurrent},
   tour,
   venue,
   "home": home->{name, short, "logo": logo.asset->url, isOwn},
@@ -240,6 +292,9 @@ export const LIVE_MATCH_QUERY = `*[_type == "match" && status == "live"] | order
   _id,
   date,
   competition,
+  "stage": stage,
+  "tournament": tournament->{name, kind, crossYearSeason},
+  "season": season->{year, isCurrent},
   tour,
   venue,
   currentMinute,

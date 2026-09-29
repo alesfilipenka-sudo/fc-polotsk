@@ -21,7 +21,7 @@ const COLUMNS = [
     title: "Матчи",
     links: [
       { label: "Расписание", href: "/#matches" },
-      { label: "Результаты", href: "/#results" },
+      { label: "Результаты", href: "/results" },
       { label: "Турнирная таблица", href: "/#matches" },
     ],
   },

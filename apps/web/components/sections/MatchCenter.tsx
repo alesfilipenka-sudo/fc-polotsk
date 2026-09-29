@@ -13,6 +13,8 @@ import { getPolotskResult } from "@/lib/matchWindow";
 import { StandingsTabs, type StandingsTable } from "../StandingsTabs";
 import { AwardedBadge } from "../AwardedBadge";
 import { awardedText } from "@/lib/awarded";
+import { competitionLabel } from "@/lib/competition-label";
+import { ExpandableMatch, type ExpandableMatchData } from "../ExpandableMatch";
 
 interface TeamRef {
   name?: string;
@@ -29,7 +31,7 @@ interface NextMatch {
   home?: TeamRef;
   away?: TeamRef;
 }
-interface RecentMatch {
+interface RecentMatch extends ExpandableMatchData {
   _id: string;
   date: string;
   competition?: string;
@@ -46,7 +48,7 @@ interface Scorer {
   ownGoal?: boolean;
   name?: string;
 }
-interface FinishedMatch {
+interface FinishedMatch extends ExpandableMatchData {
   _id: string;
   date?: string;
   competition?: string;
@@ -150,9 +152,9 @@ function PostMatchCard({ match }: { match: FinishedMatch }) {
             )}
           </span>
         </div>
-        {match.competition && (
+        {competitionLabel(match) && (
           <p className="mt-1 text-[10px] uppercase tracking-eyebrow text-slate-400">
-            {match.competition}
+            {competitionLabel(match)}
           </p>
         )}
       </div>
@@ -347,22 +349,26 @@ export async function MatchCenter() {
                   const stripeColor =
                     r === "W" ? "bg-polotsk-500" : r === "L" ? "bg-red-400" : r === "D" ? "bg-slate-400" : "bg-slate-200";
                   return (
-                    <li key={m._id} className="flex items-center gap-3 py-3">
-                      <span className={`h-8 w-1 shrink-0 rounded-full ${stripeColor}`} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] uppercase tracking-eyebrow text-slate-400">
-                          {formatShortDate(m.date)}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <p className="truncate text-sm text-slate-700">
-                            {m.home?.name ?? "?"} — {m.away?.name ?? "?"}
-                          </p>
-                          {m.awarded && <AwardedBadge />}
-                        </div>
-                      </div>
-                      <span className="font-display text-xl tabular-nums text-slate-700 shrink-0">
-                        {m.hs}:{m.as}
-                      </span>
+                    <li key={m._id}>
+                      <ExpandableMatch match={m} tone="light" dense>
+                        <span className="flex items-center gap-3">
+                          <span className={`h-8 w-1 shrink-0 rounded-full ${stripeColor}`} />
+                          <span className="flex-1 min-w-0">
+                            <span className="block text-[11px] uppercase tracking-eyebrow text-slate-400">
+                              {formatShortDate(m.date)}
+                            </span>
+                            <span className="flex items-center gap-2">
+                              <span className="truncate text-sm text-slate-700">
+                                {m.home?.name ?? "?"} — {m.away?.name ?? "?"}
+                              </span>
+                              {m.awarded && <AwardedBadge />}
+                            </span>
+                          </span>
+                          <span className="font-display text-xl tabular-nums text-slate-700 shrink-0">
+                            {m.hs}:{m.as}
+                          </span>
+                        </span>
+                      </ExpandableMatch>
                     </li>
                   );
                 })}
