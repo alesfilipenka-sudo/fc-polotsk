@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SectionHeader } from "@/components/SectionHeader";
+import { Breadcrumb } from "@/components/news/Breadcrumb";
 import { NewsCard, type NewsCardItem } from "@/components/news/NewsCard";
 import { sanityFetch } from "@/lib/sanity";
 import { ALL_NEWS_QUERY } from "@/lib/queries";
@@ -21,6 +22,10 @@ export default async function NewsIndexPage() {
       <Header />
       <main className="flex-1 bg-slate-50/30 pt-20 md:pt-24">
         <div className="mx-auto max-w-7xl px-5 py-12 md:px-8 md:py-16">
+          <Breadcrumb
+            items={[{ label: "Главная", href: "/" }, { label: "Новости" }]}
+          />
+
           <SectionHeader
             eyebrow="Новости клуба"
             title={

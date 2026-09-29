@@ -14,6 +14,21 @@ interface HeaderClientProps {
   socials: SocialUrls;
 }
 
+/**
+ * Активен ли пункт меню на текущем маршруте.
+ *
+ * Якоря («/#team») адресуют блок главной, а не страницу: подсвечивать их
+ * нечем — позицию скролла шапка не отслеживает. Поэтому активной по якорю
+ * не становится ни одна ссылка, а на главной горит «Главная».
+ */
+function isActiveNav(href: string, pathname: string): boolean {
+  // Единственное исключение: страница игрока относится к разделу «Команда».
+  if (href === "/#team") return pathname.startsWith("/player/");
+  if (href.includes("#")) return false;
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export function HeaderClient({ socials }: HeaderClientProps) {
   const pathname = usePathname();
   const isHome = pathname === "/";
@@ -69,18 +84,38 @@ export function HeaderClient({ socials }: HeaderClientProps) {
         </Link>
 
         <nav className="hidden items-center gap-7 lg:flex">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "underline-grow text-xs font-semibold uppercase tracking-wider",
-                solid ? "text-slate-700 hover:text-polotsk-500" : "text-white/85 hover:text-white",
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {NAV.map((item) => {
+            const active = isActiveNav(item.href, pathname);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "relative text-xs font-semibold uppercase tracking-wider",
+                  !active && "underline-grow",
+                  active
+                    ? solid
+                      ? "text-polotsk-500"
+                      : "text-white"
+                    : solid
+                      ? "text-slate-700 hover:text-polotsk-500"
+                      : "text-white/85 hover:text-white",
+                )}
+              >
+                {item.label}
+                {active && (
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "absolute -bottom-1.5 left-0 h-0.5 w-full rounded-full",
+                      solid ? "bg-polotsk-500" : "bg-white",
+                    )}
+                  />
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -123,16 +158,25 @@ export function HeaderClient({ socials }: HeaderClientProps) {
       {open ? (
         <div className="border-t border-slate-200 bg-white lg:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col gap-1 px-5 py-4">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-3 text-sm font-semibold uppercase tracking-wider text-slate-700 hover:bg-slate-50 hover:text-polotsk-500"
-              >
-                {item.label}
-              </Link>
-            ))}
+            {NAV.map((item) => {
+              const active = isActiveNav(item.href, pathname);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "rounded-lg px-3 py-3 text-sm font-semibold uppercase tracking-wider",
+                    active
+                      ? "bg-polotsk-50 text-polotsk-600"
+                      : "text-slate-700 hover:bg-slate-50 hover:text-polotsk-500",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
             <div className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-100 pt-4">
               {SOCIAL_ICONS.map(({ id, Icon, href, label }) => (
                 <a

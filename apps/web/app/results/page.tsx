@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SectionHeader } from "@/components/SectionHeader";
+import { Breadcrumb } from "@/components/news/Breadcrumb";
 import { sanityFetch } from "@/lib/sanity";
 import { RESULTS_QUERY } from "@/lib/queries";
 import {
@@ -25,6 +26,10 @@ export default async function ResultsPage() {
       <Header />
       <main className="flex-1 bg-slate-50/30 pt-20 md:pt-24">
         <div className="mx-auto max-w-7xl px-5 py-12 md:px-8 md:py-16">
+          <Breadcrumb
+            items={[{ label: "Главная", href: "/" }, { label: "Результаты" }]}
+          />
+
           <SectionHeader
             eyebrow="Архив матчей"
             title={
