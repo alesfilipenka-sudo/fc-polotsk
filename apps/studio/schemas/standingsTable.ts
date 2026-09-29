@@ -18,8 +18,22 @@ export const standingsTable = defineType({
   icon: ChartUpwardIcon,
   fields: [
     defineField({
-      name: "season",
+      name: "seasonRef",
       title: "Сезон",
+      type: "reference",
+      to: [{ type: "season" }],
+    }),
+    defineField({
+      name: "tournament",
+      title: "Турнир",
+      type: "reference",
+      to: [{ type: "competition" }],
+    }),
+    defineField({
+      name: "season",
+      title: "Сезон (старое поле)",
+      description:
+        "Строка, оставлена для обратной совместимости на время миграции. Заполняй «Сезон» выше.",
       type: "string",
       initialValue: "2026",
       validation: (r) => r.required(),

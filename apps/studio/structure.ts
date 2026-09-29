@@ -49,6 +49,19 @@ export const structure: StructureResolver = (S) =>
             ]),
         ),
 
+      // Сезон: справочники, от которых зависят матчи и таблицы
+      S.listItem()
+        .title("Сезон и турниры")
+        .icon(CalendarIcon)
+        .child(
+          S.list()
+            .title("Сезон и турниры")
+            .items([
+              S.documentTypeListItem("season").title("Сезоны"),
+              S.documentTypeListItem("competition").title("Турниры"),
+            ]),
+        ),
+
       // Matches
       S.documentTypeListItem("match").title("Matches").icon(CalendarIcon),
 

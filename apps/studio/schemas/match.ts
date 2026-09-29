@@ -48,6 +48,57 @@ export const match = defineType({
     { name: "result", title: "Результат" },
     { name: "live", title: "Live матч-центр" },
   ],
+  /**
+   * Новый матч сразу получает текущий сезон и главный турнир — чтобы человек,
+   * который заводит игру впервые, не гадал, что выбрать. Обе подстановки
+   * берутся из CMS, а не из кода: сменится сезон — сменится и подстановка.
+   */
+  initialValue: async (_params, context) => {
+    const client = context.getClient({ apiVersion: "2024-10-01" });
+    const [seasonId, tournamentId] = await Promise.all([
+      client.fetch<string | null>(
+        `*[_type == "season" && isCurrent == true][0]._id`,
+      ),
+      client.fetch<string | null>(
+        `*[_type == "competition" && kind == "league"] | order(coalesce(order, 0) asc)[0]._id`,
+      ),
+    ]);
+    const value: Record<string, unknown> = { status: "scheduled" };
+    if (seasonId) value.season = { _type: "reference", _ref: seasonId };
+    if (tournamentId)
+      value.tournament = { _type: "reference", _ref: tournamentId };
+    return value;
+  },
+  /**
+   * Подсказки редактору. Ошибка — только там, где документ бессмысленен;
+   * несовпадение числа голов со счётом — предупреждение: бывает, что автор
+   * гола соперника неизвестен и строку сознательно не заводят.
+   */
+  validation: (r) => [
+    r.custom((doc: Record<string, unknown> | undefined) => {
+      const home = doc?.home as { _ref?: string } | undefined;
+      const away = doc?.away as { _ref?: string } | undefined;
+      if (home?._ref && away?._ref && home._ref === away._ref) {
+        return "Хозяева и гости — одна и та же команда";
+      }
+      return true;
+    }),
+    r
+      .custom((doc: Record<string, unknown> | undefined) => {
+        if (!doc || doc.status !== "finished") return true;
+        if (doc.awarded) return true;
+        const hs = doc.hs as number | undefined;
+        const as = doc.as as number | undefined;
+        if (hs == null || as == null) return true;
+        const scorers = (doc.scorers ?? []) as { forTeam?: string }[];
+        if (scorers.length === 0) return true;
+        const home = scorers.filter((s) => s.forTeam === "home").length;
+        const away = scorers.filter((s) => s.forTeam === "away").length;
+        if (home === hs && away === as) return true;
+        return `Авторов голов ${home}:${away}, а счёт ${hs}:${as} — проверь список`;
+      })
+      .warning(),
+  ],
   fields: [
     defineField({
       name: "date",
@@ -57,12 +108,44 @@ export const match = defineType({
       validation: (r) => r.required(),
     }),
     defineField({
-      name: "competition",
+      name: "season",
+      title: "Сезон",
+      description:
+        "Календарный год, в котором сыгран матч. Подставляется текущий сезон — тот, у которого стоит галочка «Текущий сезон».",
+      type: "reference",
+      to: [{ type: "season" }],
+      group: "general",
+      validation: (r) => r.required(),
+    }),
+    defineField({
+      name: "tournament",
       title: "Турнир",
+      description:
+        "Нет нужного? Создай его в разделе «Турниры» — правки кода не требуется.",
+      type: "reference",
+      to: [{ type: "competition" }],
+      group: "general",
+      validation: (r) => r.required(),
+    }),
+    defineField({
+      name: "stage",
+      title: "Стадия",
+      description:
+        "«Витебский дивизион», «Финальный этап, группа B», «1/32 финала». Показывается на сайте рядом с названием турнира. Для турнира без стадий оставь пустым.",
       type: "string",
       group: "general",
-      initialValue: "Высшая лига",
-      validation: (r) => r.required(),
+    }),
+    defineField({
+      name: "competition",
+      title: "Турнир (старое поле)",
+      description:
+        "Осталось от прежней версии сайта. Ничего не делает — сайт читает «Турнир» и «Стадию» выше.",
+      type: "string",
+      group: "general",
+      readOnly: true,
+      // Прячем, как только матч переведён на справочники: в форме не должно
+      // быть двух полей, которые выглядят как одно и то же.
+      hidden: ({ document }) => !!document?.tournament || !document?.competition,
     }),
     defineField({
       name: "tour",
@@ -114,7 +197,11 @@ export const match = defineType({
       title: "Голы хозяев",
       type: "number",
       group: "result",
-      validation: (r) => r.integer().min(0),
+      validation: (r) =>
+        r.integer().min(0).custom((value: number | undefined, context) => {
+          if (context.document?.status !== "finished") return true;
+          return value == null ? "У завершённого матча должен быть счёт" : true;
+        }),
       hidden: ({ document }) => document?.status === "scheduled",
     }),
     defineField({
@@ -122,17 +209,22 @@ export const match = defineType({
       title: "Голы гостей",
       type: "number",
       group: "result",
-      validation: (r) => r.integer().min(0),
+      validation: (r) =>
+        r.integer().min(0).custom((value: number | undefined, context) => {
+          if (context.document?.status !== "finished") return true;
+          return value == null ? "У завершённого матча должен быть счёт" : true;
+        }),
       hidden: ({ document }) => document?.status === "scheduled",
     }),
     defineField({
       name: "finishedAt",
       title: "Финальный свисток",
       description:
-        "Заполняется при переводе матча в статус «Завершён». Используется для расчёта 48-часового окна показа результата на главной.",
+        "Старое поле. Больше не заполняется руками: окно показа результата на главной отсчитывается от даты матча.",
       type: "datetime",
       group: "result",
-      hidden: ({ document }) => document?.status !== "finished",
+      readOnly: true,
+      hidden: true,
     }),
     defineField({
       name: "awarded",

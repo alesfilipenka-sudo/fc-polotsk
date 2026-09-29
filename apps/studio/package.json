@@ -18,7 +18,8 @@
     "backfill:player-slugs": "tsx scripts/backfill-player-slugs.ts",
     "import:matches": "tsx scripts/import-matches.ts",
     "seed:standings": "tsx scripts/seed-standings.ts",
-    "import:bios": "tsx scripts/import-bios.ts"
+    "import:bios": "tsx scripts/import-bios.ts",
+    "migrate:seasons": "tsx scripts/migrate-seasons.ts"
   },
   "dependencies": {
     "@sanity/icons": "^3.5.0",
