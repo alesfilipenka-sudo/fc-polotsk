@@ -11,6 +11,8 @@ import {
 import { formatMatchDate, formatMatchTime, formatShortDate } from "@/lib/dateFormat";
 import { getPolotskResult } from "@/lib/matchWindow";
 import { StandingsTabs, type StandingsTable } from "../StandingsTabs";
+import { AwardedBadge } from "../AwardedBadge";
+import { awardedText } from "@/lib/awarded";
 
 interface TeamRef {
   name?: string;
@@ -31,6 +33,8 @@ interface RecentMatch {
   _id: string;
   date: string;
   competition?: string;
+  awarded?: boolean;
+  awardedReason?: string;
   hs?: number;
   as?: number;
   home?: TeamRef;
@@ -46,6 +50,8 @@ interface FinishedMatch {
   _id: string;
   date?: string;
   competition?: string;
+  awarded?: boolean;
+  awardedReason?: string;
   tour?: number;
   finishedAt?: string;
   hs?: number;
@@ -118,6 +124,7 @@ function PostMatchCard({ match }: { match: FinishedMatch }) {
     null;
   const when = match.finishedAt ?? match.date;
   const scorers = match.scorers ?? [];
+  const note = awardedText(match);
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 md:p-7">
@@ -131,14 +138,17 @@ function PostMatchCard({ match }: { match: FinishedMatch }) {
           <span className="text-[10px] uppercase tracking-eyebrow text-slate-400">
             Сыгран · {when ? formatShortDate(when) : ""}
           </span>
-          {label && (
-            <span
-              className="shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
-              style={{ background: accentColor }}
-            >
-              {label}
-            </span>
-          )}
+          <span className="flex shrink-0 items-center gap-2">
+            {match.awarded && <AwardedBadge />}
+            {label && (
+              <span
+                className="shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
+                style={{ background: accentColor }}
+              >
+                {label}
+              </span>
+            )}
+          </span>
         </div>
         {match.competition && (
           <p className="mt-1 text-[10px] uppercase tracking-eyebrow text-slate-400">
@@ -159,7 +169,13 @@ function PostMatchCard({ match }: { match: FinishedMatch }) {
         </div>
       </div>
 
-      {scorers.length > 0 && (
+      {note && (
+        <p className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 pl-3 text-xs leading-relaxed text-slate-500">
+          {note}
+        </p>
+      )}
+
+      {!note && scorers.length > 0 && (
         <div className="mt-4 grid grid-cols-1 gap-2 pl-3 text-xs text-slate-500 sm:grid-cols-[1fr_auto_1fr] sm:gap-4">
           <div className="flex flex-col gap-1 min-w-0">
             {scorers
@@ -337,9 +353,12 @@ export async function MatchCenter() {
                         <p className="text-[11px] uppercase tracking-eyebrow text-slate-400">
                           {formatShortDate(m.date)}
                         </p>
-                        <p className="truncate text-sm text-slate-700">
-                          {m.home?.name ?? "?"} — {m.away?.name ?? "?"}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="truncate text-sm text-slate-700">
+                            {m.home?.name ?? "?"} — {m.away?.name ?? "?"}
+                          </p>
+                          {m.awarded && <AwardedBadge />}
+                        </div>
                       </div>
                       <span className="font-display text-xl tabular-nums text-slate-700 shrink-0">
                         {m.hs}:{m.as}

@@ -3,6 +3,7 @@ import { sanityFetch } from "@/lib/sanity";
 import { RESULTS_QUERY, OWN_STANDING_QUERY } from "@/lib/queries";
 import { formatShortDate } from "@/lib/dateFormat";
 import { LEAGUE, LEAGUE_MAX_POINTS, isLeagueCompetition } from "@/lib/constants";
+import { AwardedBadge } from "../AwardedBadge";
 
 interface TeamRef {
   name?: string;
@@ -14,6 +15,7 @@ interface MatchDoc {
   _id: string;
   date: string;
   competition?: string;
+  awarded?: boolean;
   hs?: number;
   as?: number;
   home?: TeamRef;
@@ -216,9 +218,12 @@ export async function Results() {
                     <p className="text-white/70 md:col-span-3 truncate mt-0.5 md:mt-0">
                       {m.competition ?? LEAGUE.prefix}
                     </p>
-                    <p className="text-white md:col-span-5 truncate mt-1 md:mt-0">
-                      {m.home?.name ?? "?"} — {m.away?.name ?? "?"}
-                    </p>
+                    <div className="md:col-span-5 mt-1 flex items-center gap-2 md:mt-0">
+                      <p className="truncate text-white">
+                        {m.home?.name ?? "?"} — {m.away?.name ?? "?"}
+                      </p>
+                      {m.awarded && <AwardedBadge tone="dark" />}
+                    </div>
                     <p className="font-display text-xl tabular-nums text-white md:col-span-1 md:text-center mt-1 md:mt-0">
                       {m.hs}:{m.as}
                     </p>

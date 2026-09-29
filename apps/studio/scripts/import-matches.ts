@@ -210,6 +210,8 @@ interface MatchRow {
   status: string;
   hs: string;
   as: string;
+  awarded: string;
+  awardedReason: string;
 }
 
 interface EventRow {
@@ -505,7 +507,13 @@ async function run() {
       });
 
     // Сверка счёта с числом голов
-    if (status === "finished" && hs !== undefined && as !== undefined && scorers.length > 0) {
+    if (
+      status === "finished" &&
+      !isTrue(row.awarded) &&
+      hs !== undefined &&
+      as !== undefined &&
+      scorers.length > 0
+    ) {
       const goalsHome = scorers.filter((g) => g.forTeam === "home").length;
       const goalsAway = scorers.filter((g) => g.forTeam === "away").length;
       if (goalsHome !== hs || goalsAway !== as) {
@@ -545,6 +553,13 @@ async function run() {
     if (row.venue?.trim()) doc.venue = row.venue.trim();
     if (hs !== undefined) doc.hs = hs;
     if (as !== undefined) doc.as = as;
+    // Присуждённый результат: матч не игрался, счёт идёт в таблицу,
+    // но на сайте он помечается и поясняется отдельно.
+    if (isTrue(row.awarded)) {
+      doc.awarded = true;
+      doc.awardedReason = row.awardedReason?.trim() || "opponent-no-show";
+    }
+
     if (status === "finished" && !isUpdate) {
       // Финальный свисток ≈ начало + 2 часа. Нужен для 48-часового окна на главной.
       doc.finishedAt = new Date(dateObj.getTime() + 2 * 60 * 60 * 1000).toISOString();

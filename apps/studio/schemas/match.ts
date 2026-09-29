@@ -135,6 +135,34 @@ export const match = defineType({
       hidden: ({ document }) => document?.status !== "finished",
     }),
     defineField({
+      name: "awarded",
+      title: "Результат присуждён",
+      description:
+        "Матч не игрался или не доигран, счёт присуждён решением федерации. По регламенту это 3:0 — сам счёт заполняется в полях выше.",
+      type: "boolean",
+      group: "result",
+      initialValue: false,
+      hidden: ({ document }) => document?.status !== "finished",
+    }),
+    defineField({
+      name: "awardedReason",
+      title: "Причина",
+      description: "Показывается на сайте вместо ленты событий.",
+      type: "string",
+      group: "result",
+      options: {
+        list: [
+          { title: "Соперник не прибыл на матч", value: "opponent-no-show" },
+          { title: "Наша команда не прибыла на матч", value: "own-no-show" },
+          { title: "Соперник снят с турнира", value: "opponent-withdrawn" },
+          { title: "Иное решение федерации", value: "other" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "opponent-no-show",
+      hidden: ({ document }) => !document?.awarded,
+    }),
+    defineField({
       name: "scorers",
       title: "Авторы голов",
       description:
