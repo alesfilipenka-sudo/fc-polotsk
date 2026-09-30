@@ -221,8 +221,14 @@ export async function Hero() {
         className="pointer-events-none absolute right-[-60px] top-1/2 hidden -translate-y-1/2 md:block"
       />
 
-      <div className="relative mx-auto max-w-7xl px-5 pb-16 pt-28 md:px-8 md:pb-24 md:pt-32">
-        <div className="grid items-end gap-12 md:grid-cols-12 md:gap-10">
+      {/*
+        Отступы и кегль подобраны так, чтобы секция не занимала весь экран:
+        раньше на контент приходилось меньше половины её высоты, и пустота
+        собиралась сверху из-за items-end. items-center разводит остаток
+        поровну, и колонки читаются как одна композиция.
+      */}
+      <div className="relative mx-auto max-w-7xl px-5 pb-12 pt-24 md:px-8 md:pb-14 md:pt-24">
+        <div className="grid items-center gap-10 md:grid-cols-12 md:gap-10">
           <div className="md:col-span-7">
             {/*
               Плашка сезона и город — одна строка. Раньше это были два
@@ -246,15 +252,20 @@ export async function Hero() {
               </p>
             </div>
 
-            <h1 className="mt-6 font-display text-[13vw] leading-[0.85] md:text-[8.5rem]">
+            {/*
+              leading-[0.9] вместо 0.85: при более плотном межстрочном
+              надстрочные знаки второй строки («Й» в «БЕЛО-СИНИЙ») уходили
+              под верхний край блока и обрезались overflow-hidden секции.
+            */}
+            <h1 className="mt-5 font-display text-[12vw] leading-[0.9] md:text-[6.5rem] lg:text-[7rem]">
               {line1}
               <br />
               <span className="text-polotsk-300">{line2}</span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-base text-white/70 text-balance">{subtitle}</p>
+            <p className="mt-5 max-w-lg text-base text-white/70 text-balance">{subtitle}</p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-wrap gap-3">
               <a
                 href="#matches"
                 className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-xs font-bold uppercase tracking-wider text-polotsk-700 transition hover:bg-polotsk-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-polotsk-300"
