@@ -4,7 +4,7 @@
 Скрипты из `apps/studio/scripts/` — ускорение, но всё ниже делается руками
 в Studio, и сайт от скриптов не зависит.
 
-Адрес админки: **https://fcpolotsk.sanity.studio** (или `pnpm --filter
+Адрес админки: **https://fc-polotsk.sanity.studio** (или `pnpm --filter
 @fc-polotsk/studio dev` локально). Сайт перечитывает данные в течение минуты
 после публикации — пересобирать ничего не нужно.
 
