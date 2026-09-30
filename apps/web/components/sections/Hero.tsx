@@ -224,18 +224,27 @@ export async function Hero() {
       <div className="relative mx-auto max-w-7xl px-5 pb-16 pt-28 md:px-8 md:pb-24 md:pt-32">
         <div className="grid items-end gap-12 md:grid-cols-12 md:gap-10">
           <div className="md:col-span-7">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium tracking-wide">
-              <span className="relative inline-flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-polotsk-300 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-polotsk-300" />
+            {/*
+              Плашка сезона и город — одна строка. Раньше это были два
+              inline-flex соседа, и вертикальный отступ у второго сдвигал его
+              относительно первого: на одной линии они держались случайно.
+              Явный flex-ряд выравнивает их по центру и переносит город вниз
+              на узких экранах.
+            */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium tracking-wide">
+                <span className="relative inline-flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-polotsk-300 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-polotsk-300" />
+                </span>
+                {badge}
               </span>
-              {badge}
-            </span>
 
-            <p className="mt-5 inline-flex items-center gap-2 text-sm text-white/70">
-              <MapPin className="h-4 w-4" />
-              {city}
-            </p>
+              <p className="inline-flex items-center gap-1.5 text-sm text-white/70">
+                <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+                {city}
+              </p>
+            </div>
 
             <h1 className="mt-6 font-display text-[13vw] leading-[0.85] md:text-[8.5rem]">
               {line1}
