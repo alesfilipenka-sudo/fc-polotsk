@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "Архив матчей ФК Полоцк: счёт, авторы голов и карточки по сезонам и турнирам.",
 };
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 export default async function ResultsPage() {
   const matches = (await sanityFetch<ResultMatch[]>(RESULTS_QUERY)) ?? [];

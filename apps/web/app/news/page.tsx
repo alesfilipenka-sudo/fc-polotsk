@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description: "Все новости, анонсы и материалы ФК Полоцк.",
 };
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 export default async function NewsIndexPage() {
   const items = (await sanityFetch<NewsCardItem[]>(ALL_NEWS_QUERY)) ?? [];

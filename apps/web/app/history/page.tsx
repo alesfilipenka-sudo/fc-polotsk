@@ -12,8 +12,8 @@ export const metadata: Metadata = {
     "120 лет полоцкого футбола: от первого мяча на плацу кадетского корпуса в 1905 году до профессионального клуба наших дней.",
 };
 
-// История меняется редко — кеш на час, обновится сразу при ручном revalidate.
-export const revalidate = 3600;
+// История меняется редко — кеш на сутки, сбрасывается вебхуком при правке.
+export const revalidate = 86400;
 
 export default async function HistoryPage() {
   const eras = (await sanityFetch<HistoryEra[]>(HISTORY_QUERY)) ?? [];

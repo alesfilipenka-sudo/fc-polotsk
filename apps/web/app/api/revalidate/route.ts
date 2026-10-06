@@ -7,7 +7,12 @@ import crypto from "node:crypto";
  *
  * Sanity Studio is configured to POST here on create/update/delete of any
  * document. We verify the HMAC signature using SANITY_REVALIDATE_SECRET, then
- * call revalidatePath('/') so the landing rebuilds with fresh content.
+ * сбрасываем кеш всех страниц, которые читают CMS.
+ *
+ * Это и есть механизм свежести сайта: окна ISR на страницах намеренно длинные
+ * (час и сутки), потому что короткое окно перезаписывает кеш по таймеру даже
+ * тогда, когда в Sanity ничего не менялось. Публикация в Studio доводит
+ * изменение до сайта за секунды, а не за время окна.
  *
  * Sanity webhook setup: sanity.io/manage → API → Webhooks → Add webhook
  *   - URL: https://<your-vercel-domain>/api/revalidate
@@ -61,7 +66,15 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    revalidatePath("/");
+    // Статические маршруты.
+    for (const path of ["/", "/results", "/news", "/history"]) {
+      revalidatePath(path);
+    }
+    // Динамические: литерал маршрута + "page" сбрасывает все страницы,
+    // подходящие под него, без перечисления слагов.
+    revalidatePath("/news/[slug]", "page");
+    revalidatePath("/player/[slug]", "page");
+
     return NextResponse.json({ revalidated: true, now: Date.now() });
   } catch (err) {
     return NextResponse.json(

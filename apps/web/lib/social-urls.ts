@@ -22,11 +22,12 @@ interface RawSocialChannel {
  * Если для какой-то платформы в Sanity нет документа или url не задан —
  * используется fallback из SITE.social в constants.ts.
  *
- * Кешируется на 5 минут (revalidate=300).
+ * Кешируется на сутки: ссылки на соцсети меняются раз в никогда,
+ * а вебхук из Sanity сбросит кеш сразу после правки.
  */
 export async function getSocialUrls(): Promise<SocialUrls> {
   const channels =
-    (await sanityFetch<RawSocialChannel[]>(SOCIALS_QUERY, {}, 300)) ?? [];
+    (await sanityFetch<RawSocialChannel[]>(SOCIALS_QUERY, {}, 86400)) ?? [];
 
   const urls: SocialUrls = {
     instagram: SITE.social.instagram,

@@ -39,7 +39,7 @@ export function urlFor(source: unknown) {
 export async function sanityFetch<T>(
   query: string,
   params: Record<string, unknown> = {},
-  revalidate: number = 60,
+  revalidate: number = 3600,
 ): Promise<T | null> {
   if (!sanityClient) {
     if (process.env.NODE_ENV !== "production") {

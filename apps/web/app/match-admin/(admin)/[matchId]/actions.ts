@@ -97,6 +97,7 @@ export async function createEventAction(input: CreateEventInput) {
 
   revalidatePath(`/match-admin/${input.matchId}`);
   revalidatePath("/");
+  revalidatePath("/results");
 }
 
 export async function undoEventAction(matchId: string) {
@@ -124,6 +125,7 @@ export async function undoEventAction(matchId: string) {
 
   revalidatePath(`/match-admin/${matchId}`);
   revalidatePath("/");
+  revalidatePath("/results");
 }
 
 export async function setMatchStatusAction(
@@ -135,6 +137,7 @@ export async function setMatchStatusAction(
   await client.patch(matchId).set({ status }).commit();
   revalidatePath(`/match-admin/${matchId}`);
   revalidatePath("/");
+  revalidatePath("/results");
 }
 
 interface RawGoalEvent {
@@ -192,6 +195,7 @@ export async function finalizeMatchAction(matchId: string) {
 
   revalidatePath(`/match-admin/${matchId}`);
   revalidatePath("/");
+  revalidatePath("/results");
 }
 
 /* ============================================================
@@ -258,6 +262,7 @@ export async function saveLineupAction(input: SaveLineupInput) {
 
   revalidatePath(`/match-admin/${input.matchId}`);
   revalidatePath("/");
+  revalidatePath("/results");
 }
 
 /* ============================================================
@@ -306,4 +311,5 @@ export async function saveStatsAction(input: SaveStatsInput) {
 
   revalidatePath(`/match-admin/${input.matchId}`);
   revalidatePath("/");
+  revalidatePath("/results");
 }
