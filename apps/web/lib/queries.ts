@@ -386,6 +386,39 @@ export const OWN_STANDING_QUERY = `*[_type == "standingsTable" && seasonStats ==
   }
 }`;
 
+/**
+ * Сезоны: текущий и ближайший будущий.
+ *
+ * `endsAt` текущего — признак межсезонья (см. lib/season-state.ts).
+ * `startsAt` будущего — цель обратного отсчёта на карточке итогов.
+ */
+export const SEASONS_QUERY = `{
+  "current": *[_type == "season" && isCurrent == true][0]{ year, startsAt, endsAt },
+  "upcoming": *[_type == "season" && isCurrent != true && defined(startsAt) && startsAt > now()] | order(startsAt asc)[0]{ year, startsAt }
+}`;
+
+/**
+ * Последняя по порядку турнирная таблица — то есть этап, которым сезон
+ * закончился. Используется карточкой межсезонья.
+ */
+export const LAST_STAGE_STANDING_QUERY = `*[_type == "standingsTable"] | order(order desc, _createdAt desc)[0]{
+  stage,
+  totalMatches,
+  "rows": rows[]{
+    pos, mp, w, d, l, gf, ga, pts,
+    "isOwn": team->isOwn
+  }
+}`;
+
+/** Авторы голов за текущий сезон — для «лучшего бомбардира». */
+export const SEASON_SCORERS_QUERY = `*[_type == "match" && status == "finished" && season->isCurrent == true]{
+  "goals": scorers[]{
+    ownGoal,
+    "name": player->name,
+    "slug": player->slug.current
+  }
+}`;
+
 export const SOCIALS_QUERY = `*[_type == "socialChannel"] | order(order asc){
   _id,
   id,

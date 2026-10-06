@@ -10,9 +10,12 @@ import {
   LAST_FINISHED_MATCH_QUERY,
   NEXT_MATCH_QUERY,
   LIVE_MATCH_QUERY,
+  SEASONS_QUERY,
 } from "@/lib/queries";
 import { formatMatchDate, formatMatchTime, formatShortDate } from "@/lib/dateFormat";
 import { getMatchDisplayMode, getPolotskResult } from "@/lib/matchWindow";
+import { getSeasonPhase } from "@/lib/season-state";
+import { OffseasonCard } from "../OffseasonCard";
 
 interface TeamRef {
   name?: string;
@@ -180,11 +183,12 @@ function PostMatchStrip({ match }: { match: FinishedMatch }) {
 }
 
 export async function Hero() {
-  const [settings, lastMatch, nextMatch, liveMatch] = await Promise.all([
+  const [settings, lastMatch, nextMatch, liveMatch, seasons] = await Promise.all([
     sanityFetch<SiteSettings | null>(SITE_SETTINGS_QUERY),
     sanityFetch<FinishedMatch | null>(LAST_FINISHED_MATCH_QUERY),
     sanityFetch<NextMatch | null>(NEXT_MATCH_QUERY),
     sanityFetch<LiveMatch | null>(LIVE_MATCH_QUERY, {}, 15),
+    sanityFetch<{ current?: { endsAt?: string } | null }>(SEASONS_QUERY),
   ]);
 
   const badge = settings?.heroBadge ?? `Сезон ${SITE.season} · ${SITE.league}`;
@@ -211,6 +215,18 @@ export async function Hero() {
   const mode = getMatchDisplayMode(next, lastMatch);
   const showPostMatch = !showLive && (mode === "post_match" || mode === "post_match_no_next");
   const showNext = !showLive && (mode === "scheduled" || mode === "post_match");
+
+  // Межсезонье: матчей в календаре нет, и сезон помечен завершённым
+  // (датой последнего матча в CMS либо по давности последней игры).
+  const offseason =
+    !showLive &&
+    !showNext &&
+    !showPostMatch &&
+    getSeasonPhase({
+      hasNextMatch: !!next,
+      lastMatchDate: lastMatch?.finishedAt ?? lastMatch?.date,
+      seasonEndsAt: seasons?.current?.endsAt,
+    }) === "offseason";
 
   return (
     <section id="top" className="stadium-bg relative overflow-hidden text-white">
@@ -308,7 +324,9 @@ export async function Hero() {
               </div>
             )}
 
-            {!showLive && !showPostMatch && !showNext && (
+            {offseason && <OffseasonCard tone="dark" />}
+
+            {!showLive && !showPostMatch && !showNext && !offseason && (
               <div className="rounded-2xl border border-white/15 bg-white/[0.07] p-5 text-center text-sm text-white/60 backdrop-blur-md md:p-7">
                 Расписание уточняется
               </div>

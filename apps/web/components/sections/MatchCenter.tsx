@@ -7,6 +7,7 @@ import {
   STANDINGS_QUERY,
   LAST_FINISHED_MATCH_QUERY,
   NEXT_MATCH_QUERY,
+  SEASONS_QUERY,
 } from "@/lib/queries";
 import { formatMatchDate, formatMatchTime, formatShortDate } from "@/lib/dateFormat";
 import { getPolotskResult } from "@/lib/matchWindow";
@@ -14,6 +15,8 @@ import { StandingsTabs, type StandingsTable } from "../StandingsTabs";
 import { AwardedBadge } from "../AwardedBadge";
 import { awardedText } from "@/lib/awarded";
 import { competitionLabel } from "@/lib/competition-label";
+import { getSeasonPhase } from "@/lib/season-state";
+import { OffseasonCard } from "../OffseasonCard";
 import { ExpandableMatch, type ExpandableMatchData } from "../ExpandableMatch";
 
 interface TeamRef {
@@ -214,11 +217,12 @@ function PostMatchCard({ match }: { match: FinishedMatch }) {
 }
 
 export async function MatchCenter() {
-  const [recent, standings, lastMatch, nextMatchData] = await Promise.all([
+  const [recent, standings, lastMatch, nextMatchData, seasons] = await Promise.all([
     sanityFetch<RecentMatch[]>(RECENT_MATCHES_QUERY),
     sanityFetch<StandingsTable[]>(STANDINGS_QUERY),
     sanityFetch<FinishedMatch | null>(LAST_FINISHED_MATCH_QUERY),
     sanityFetch<NextMatch | null>(NEXT_MATCH_QUERY),
+    sanityFetch<{ current?: { endsAt?: string } | null }>(SEASONS_QUERY),
   ]);
 
   const next = nextMatchData ?? null;
@@ -226,6 +230,13 @@ export async function MatchCenter() {
   const standingsTables = standings ?? [];
   const showPostMatch = !!lastMatch;
   const showNext = !!next;
+  const offseason =
+    !showNext &&
+    getSeasonPhase({
+      hasNextMatch: !!next,
+      lastMatchDate: lastMatch?.finishedAt ?? lastMatch?.date,
+      seasonEndsAt: seasons?.current?.endsAt,
+    }) === "offseason";
 
   return (
     <section id="matches" className="bg-white py-14 md:py-20">
@@ -243,7 +254,9 @@ export async function MatchCenter() {
           <div className="space-y-6 lg:col-span-7">
             {showPostMatch && lastMatch && <PostMatchCard match={lastMatch} />}
 
-            {!showPostMatch && !showNext && (
+            {offseason && <OffseasonCard tone="light" />}
+
+            {!showPostMatch && !showNext && !offseason && (
               <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
                 Расписание уточняется
               </div>
