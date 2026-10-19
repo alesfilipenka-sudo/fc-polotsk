@@ -187,7 +187,12 @@ export async function Hero() {
     sanityFetch<SiteSettings | null>(SITE_SETTINGS_QUERY),
     sanityFetch<FinishedMatch | null>(LAST_FINISHED_MATCH_QUERY),
     sanityFetch<NextMatch | null>(NEXT_MATCH_QUERY),
-    sanityFetch<LiveMatch | null>(LIVE_MATCH_QUERY, {}, 15),
+    // Без собственного окна: 15 секунд здесь опускали до 15 секунд ВСЮ
+    // главную — по правилу Next наименьший revalidate среди запросов
+    // маршрута определяет частоту его пересборки. Свежесть live-матча
+    // обеспечивают действия админки: каждое из них вызывает
+    // revalidatePath("/") сразу после записи события.
+    sanityFetch<LiveMatch | null>(LIVE_MATCH_QUERY),
     sanityFetch<{ current?: { endsAt?: string } | null }>(SEASONS_QUERY),
   ]);
 

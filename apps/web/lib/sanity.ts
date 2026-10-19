@@ -35,6 +35,13 @@ export function urlFor(source: unknown) {
 /**
  * ISR-aware fetch wrapper. Returns null if client is not configured or fetch
  * fails — never throws. Components handle null by showing placeholder data.
+ *
+ * ВНИМАНИЕ к третьему аргументу. Значение меньше, чем `revalidate` страницы,
+ * опускает частоту пересборки ВСЕГО маршрута, а не только этого запроса:
+ * «the lowest revalidate across each layout and page of a single route will
+ * determine the revalidation frequency of the entire route». Один запрос
+ * с окном в 15 секунд однажды уже сжёг двойную месячную квоту Vercel.
+ * Нужна мгновенная свежесть — делай её через revalidatePath по событию.
  */
 export async function sanityFetch<T>(
   query: string,
